@@ -501,9 +501,8 @@ export const dbClient = {
             email: userData.email,
             passwordHash: userData.passwordHash,
             role: 'USER',
-            active: false,
-            emailVerified: false,
-            verificationToken: userData.verificationToken,
+            active: true,
+            emailVerified: true,
             standing: {
               create: {
                 totalPoints: 0,
@@ -526,9 +525,8 @@ export const dbClient = {
       name: userData.name,
       email: userData.email,
       role: 'USER' as const,
-      active: false,
-      emailVerified: false,
-      verificationToken: userData.verificationToken,
+      active: true,
+      emailVerified: true,
       createdAt: new Date().toISOString(),
     };
     data.users.push(newUser);

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { dbClient } from '@/lib/db-client';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { sendVerificationEmail } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,7 +29,7 @@ export async function POST(req: NextRequest) {
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const userId = crypto.randomUUID();
 
-    // Create user in DB
+    // Create user in DB (auto-verified, no email confirmation needed)
     await dbClient.registerUser({
       id: userId,
       name: name.trim(),
@@ -39,12 +38,9 @@ export async function POST(req: NextRequest) {
       verificationToken,
     });
 
-    // Send/log verification email
-    await sendVerificationEmail(email, name, verificationToken);
-
     return NextResponse.json({
       success: true,
-      message: 'Registro exitoso. Revisa tu correo electrónico para verificar tu cuenta antes de ingresar.'
+      message: '¡Registro exitoso! Ya podés iniciar sesión con tu cuenta.'
     });
   } catch (error: any) {
     console.error('Registration API error:', error);
