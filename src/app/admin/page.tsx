@@ -37,6 +37,7 @@ interface UserData {
   role: 'USER' | 'ADMIN';
   active: boolean;
   createdAt: string;
+  emailVerified?: boolean;
 }
 
 interface MatchData {
@@ -236,6 +237,27 @@ export default function AdminPage() {
     } catch (err) {
       console.error(err);
       alert('Error al eliminar usuario.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleToggleActive = async (u: UserData) => {
+    setActionLoading(true);
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: u.id, name: u.name, email: u.email, role: u.role, active: !u.active }),
+      });
+      if (res.ok) {
+        await loadData();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Error al cambiar estado del usuario.');
+      }
+    } catch (err) {
+      console.error(err);
     } finally {
       setActionLoading(false);
     }
@@ -526,21 +548,26 @@ export default function AdminPage() {
                     <thead>
                       <tr className="text-xs font-bold text-gray-400 border-b border-gray-200 dark:border-gray-800 uppercase pb-2">
                         <th className="pb-3">Nombre</th>
+                        <th className="pb-3">Estado</th>
                         <th className="pb-3">Rol</th>
                         <th className="pb-3 text-right">Acciones</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-800 text-sm font-semibold">
                       {usersList.map((u) => (
-                        <tr key={u.id} className="hover:bg-gray-500/5">
+                        <tr key={u.id} className={`hover:bg-gray-500/5 ${!u.active ? 'opacity-50' : ''}`}>
                           <td className="py-3">
-                            <div>{u.name}</div>
-                            <div className="text-xs text-gray-400 font-medium">
-                              {(() => {
-                                const raw = u.email.split('@')[0];
-                                return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
-                              })()}
+                            <div className="flex items-center gap-2">
+                              {u.name}
                             </div>
+                            <div className="text-xs text-gray-400 font-medium">{u.email}</div>
+                          </td>
+                          <td className="py-3">
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                              u.active ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+                            }`}>
+                              {u.active ? 'Activo' : 'Inactivo'}
+                            </span>
                           </td>
                           <td className="py-3">
                             <span className={`text-xs px-2 py-0.5 rounded-full ${u.role === 'ADMIN' ? 'bg-sya-orange/10 text-sya-orange' : 'bg-gray-500/10 text-gray-500'}`}>
@@ -549,6 +576,18 @@ export default function AdminPage() {
                           </td>
                           <td className="py-3 text-right">
                             <div className="flex justify-end gap-2">
+                              <button
+                                onClick={() => handleToggleActive(u)}
+                                disabled={actionLoading}
+                                title={u.active ? 'Deshabilitar usuario' : 'Habilitar usuario'}
+                                className={`p-1.5 rounded-lg transition-colors ${
+                                  u.active
+                                    ? 'bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500'
+                                    : 'bg-green-500/10 hover:bg-green-500/20 text-green-500'
+                                }`}
+                              >
+                                {u.active ? <UserMinus className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                              </button>
                               <button
                                 onClick={() => {
                                   setUserForm({ id: u.id, name: u.name, email: u.email.split('@')[0], role: u.role, password: '' });

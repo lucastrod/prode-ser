@@ -25,10 +25,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Credenciales incorrectas' }, { status: 401 });
     }
 
-    if (!user.emailVerified) {
-      return NextResponse.json({ error: 'Debes verificar tu correo electrónico antes de iniciar sesión. Revisa tu casilla.' }, { status: 401 });
-    }
-
     if (!user.active) {
       return NextResponse.json({ error: 'Tu cuenta se encuentra inactiva o ha sido suspendida.' }, { status: 401 });
     }
