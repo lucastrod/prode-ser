@@ -73,6 +73,7 @@ export default function AdminPage() {
   
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Forms
   const [userForm, setUserForm] = useState<{ id: string; name: string; email: string; role: 'USER' | 'ADMIN'; password: string }>({ id: '', name: '', email: '', role: 'USER', password: '' });
@@ -155,36 +156,64 @@ export default function AdminPage() {
 
   const handleForceSync = async () => {
     setActionLoading(true);
+    setSyncMessage(null);
     try {
       const res = await fetch('/api/admin/matches/sync-preview');
       const data = await res.json();
-      if (res.ok && data.matches && data.matches.length > 0) {
-        // Tomamos el primer partido que trajo ESPN y lo precargamos en el formulario
-        const suggested = data.matches[0];
-        const original = matchesList.find((m) => m.id === suggested.id);
-        if (original) {
-          setEditingId(suggested.id);
-          setMatchForm({
-            id: original.id,
-            homeTeam: original.homeTeam,
-            awayTeam: original.awayTeam,
-            matchDate: original.matchDate,
-            groupName: original.groupName,
-            status: 'FINISHED',
-            homeScore: String(suggested.homeScore),
-            awayScore: String(suggested.awayScore),
-          });
-          setTimeout(() => {
-            const el = document.getElementById(`match_${suggested.id}`) || document.getElementById(`match_mob_${suggested.id}`);
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 100);
-        }
-      } else {
-        alert('No hay resultados nuevos en ESPN para los partidos pendientes.');
+
+      if (!res.ok) {
+        setSyncMessage({ type: 'error', text: 'Error al conectar con ESPN.' });
+        return;
       }
+
+      if (!data.matches || data.matches.length === 0) {
+        setSyncMessage({ type: 'error', text: 'No hay resultados nuevos en ESPN para los partidos pendientes.' });
+        return;
+      }
+
+      // Guardar todos los partidos encontrados directamente en la BD
+      let saved = 0;
+      for (const suggested of data.matches) {
+        const original = matchesList.find((m) => m.id === suggested.id);
+        if (!original) continue;
+        try {
+          const saveRes = await fetch('/api/admin/matches', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: original.id,
+              homeTeam: original.homeTeam,
+              awayTeam: original.awayTeam,
+              matchDate: original.matchDate,
+              groupName: original.groupName,
+              status: 'FINISHED',
+              homeScore: suggested.homeScore,
+              awayScore: suggested.awayScore,
+            }),
+          });
+          if (saveRes.ok) {
+            saved++;
+          } else {
+            const errData = await saveRes.json();
+            console.error(`Error guardando partido ${original.id}:`, errData.error);
+          }
+        } catch (saveErr) {
+          console.error(`Error guardando partido ${original.id}:`, saveErr);
+        }
+      }
+
+      await loadData();
+      setSyncMessage({
+        type: saved > 0 ? 'success' : 'error',
+        text: saved > 0
+          ? `✅ ${saved} resultado${saved !== 1 ? 's' : ''} guardado${saved !== 1 ? 's' : ''} automáticamente.`
+          : 'Se encontraron partidos en ESPN pero ninguno pudo guardarse.',
+      });
+      // Auto-ocultar mensaje tras 5 segundos
+      setTimeout(() => setSyncMessage(null), 5000);
     } catch (err) {
       console.error(err);
-      alert('Error al traer resultados de ESPN.');
+      setSyncMessage({ type: 'error', text: 'Error inesperado al sincronizar con ESPN.' });
     } finally {
       setActionLoading(false);
     }
@@ -387,23 +416,36 @@ export default function AdminPage() {
         </div>
 
         {/* Global Action Buttons */}
-        <div className="flex flex-wrap gap-2 shrink-0">
-          <button
-            onClick={handleImportFixtures}
-            disabled={actionLoading}
-            className="py-2.5 px-4 bg-sya-blue hover:bg-sya-blue/90 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50"
-          >
-            <ArrowDownToLine className="w-4 h-4" />
-            Importar Fixture (Grupo)
-          </button>
-          <button
-            onClick={handleForceSync}
-            disabled={actionLoading}
-            className="py-2.5 px-4 sya-button-primary text-xs flex items-center gap-1.5 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${actionLoading ? 'animate-spin' : ''}`} />
-            Sincronizar Resultados (Cron)
-          </button>
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={handleImportFixtures}
+              disabled={actionLoading}
+              className="py-2.5 px-4 bg-sya-blue hover:bg-sya-blue/90 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <ArrowDownToLine className="w-4 h-4" />
+              Importar Fixture (Grupo)
+            </button>
+            <button
+              onClick={handleForceSync}
+              disabled={actionLoading}
+              className="py-2.5 px-4 sya-button-primary text-xs flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${actionLoading ? 'animate-spin' : ''}`} />
+              Sincronizar Resultados (ESPN)
+            </button>
+          </div>
+          {syncMessage && (
+            <div
+              className={`text-xs font-bold px-4 py-2 rounded-xl animate-slide-up ${
+                syncMessage.type === 'success'
+                  ? 'bg-green-500/10 text-green-500 border border-green-500/20'
+                  : 'bg-red-500/10 text-red-500 border border-red-500/20'
+              }`}
+            >
+              {syncMessage.text}
+            </div>
+          )}
         </div>
       </div>
 
