@@ -222,9 +222,12 @@ export const dbClient = {
       try {
         const match = await db.match.findUnique({ where: { id: matchId } });
         if (!match) throw new Error('Match not found');
+
+        const user = await db.user.findUnique({ where: { id: userId } });
+        const isAdmin = user?.role === 'ADMIN';
         
         // Locked check (kickoff passed minus 15 mins)
-        if (new Date() >= new Date(new Date(match.matchDate).getTime() - 15 * 60000)) {
+        if (!isAdmin && new Date() >= new Date(new Date(match.matchDate).getTime() - 15 * 60000)) {
           throw new Error('El partido está bloqueado. (Cierra 15 min antes del inicio).');
         }
 
@@ -255,7 +258,10 @@ export const dbClient = {
     const match = data.matches.find((m) => m.id === matchId);
     if (!match) throw new Error('Match not found');
 
-    if (new Date() >= new Date(new Date(match.matchDate).getTime() - 15 * 60000)) {
+    const mockUser = data.users.find((u) => u.id === userId);
+    const isMockAdmin = mockUser?.role === 'ADMIN';
+
+    if (!isMockAdmin && new Date() >= new Date(new Date(match.matchDate).getTime() - 15 * 60000)) {
       throw new Error('El partido está bloqueado. (Cierra 15 min antes del inicio).');
     }
 

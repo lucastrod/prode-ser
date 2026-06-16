@@ -137,7 +137,7 @@ export default function PredictionsPage() {
         );
       case 'Finalizado':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 text-xs font-bold border border-amber-500/20">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 text-red-500 text-xs font-bold border border-red-500/20">
             <Clock className="w-3.5 h-3.5" />
             Finalizado
           </span>

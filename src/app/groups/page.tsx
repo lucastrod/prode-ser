@@ -28,7 +28,7 @@ const GROUPS = [
 ];
 
 export default function GroupsPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   
   const [matches, setMatches] = useState<Match[]>([]);
   const [predictions, setPredictions] = useState<Record<number, Prediction>>({});
@@ -238,7 +238,7 @@ export default function GroupsPage() {
           {filteredMatches.map((match) => {
             const pred = predictions[match.id] || { predictedHomeScore: 0, predictedAwayScore: 0 };
             const saveState = saveStates[match.id] || 'idle';
-            const isLocked = new Date() >= new Date(new Date(match.matchDate).getTime() - 15 * 60000) || match.status !== 'SCHEDULED';
+            const isLocked = (new Date() >= new Date(new Date(match.matchDate).getTime() - 15 * 60000) || match.status !== 'SCHEDULED') && profile?.role !== 'ADMIN';
             
             return (
               <div id={`match-${match.id}`} key={match.id} className="sya-glass p-6 flex flex-col justify-between relative overflow-hidden transition-all duration-1000 hover:shadow-md">
