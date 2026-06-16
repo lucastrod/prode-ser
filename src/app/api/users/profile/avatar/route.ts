@@ -32,20 +32,9 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Create unique filename
-    const fileExtension = file.name.split('.').pop() || 'png';
-    const filename = `${session.userId}-${Date.now()}.${fileExtension}`;
-    
-    // Save locally to public/uploads
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    const filePath = path.join(uploadDir, filename);
-    fs.writeFileSync(filePath, buffer);
-
-    const avatarUrl = `/uploads/${filename}`;
+    // Convert to base64 Data URL to allow storage in database without write access to local filesystem (e.g. on Vercel)
+    const base64Data = buffer.toString('base64');
+    const avatarUrl = `data:${file.type};base64,${base64Data}`;
 
     // Update User record in database
     await db.user.update({

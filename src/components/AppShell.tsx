@@ -193,8 +193,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
         {/* User profile footer */}
         <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#1f2937]/50 rounded-b-2xl">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#1B199A] bg-[#1B199A]/10 flex items-center justify-center text-white font-bold text-sm uppercase">
+          <Link href="/profile" className="flex items-center gap-3 mb-3 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-xl transition-colors cursor-pointer group">
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#1B199A] bg-[#1B199A]/10 flex items-center justify-center text-white font-bold text-sm uppercase group-hover:scale-105 transition-transform">
               {profile.avatarUrl ? (
                 <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -202,7 +202,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-sm font-bold truncate">{profile.name}</h2>
+              <h2 className="text-sm font-bold truncate group-hover:text-[#1B199A] transition-colors">{profile.name}</h2>
               <span className="text-xs text-gray-400 block truncate">
                 {(() => {
                   const raw = profile.email.split('@')[0];
@@ -210,7 +210,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 })()}
               </span>
             </div>
-          </div>
+          </Link>
 
           <div className="flex flex-col gap-2">
 
@@ -240,7 +240,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               <Menu className="w-6 h-6 text-[#1B199A]" />
             </button>
             
-            <div className="flex items-center gap-3">
+            <Link href="/profile" className="flex items-center gap-3 hover:opacity-85 transition-opacity cursor-pointer">
               <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-[#1B199A] bg-[#1B199A]/10 flex items-center justify-center text-white font-bold text-xs uppercase">
                 {profile.avatarUrl ? (
                   <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
@@ -255,7 +255,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               <div className="sm:hidden">
                 <h2 className="text-md font-bold font-serif text-[#1B199A]">PRODE SER</h2>
               </div>
-            </div>
+            </Link>
           </div>
 
           {/* Leaderboard summaries & Theme Toggle */}
