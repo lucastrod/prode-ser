@@ -103,9 +103,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     return () => clearInterval(interval);
   }, [user, pathname]);
 
-  // Redirect to login if not authenticated and not loading
+  // Redirect to login if not authenticated and not loading (exclude public pages)
   useEffect(() => {
-    if (!loading && !user && pathname !== '/login') {
+    if (!loading && !user && pathname !== '/login' && pathname !== '/register' && pathname !== '/verify') {
       router.push('/login');
     }
   }, [user, loading, pathname, router]);
