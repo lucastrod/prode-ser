@@ -121,8 +121,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     );
   }
 
-  // Render children directly on login page
-  if (pathname === '/login') {
+  // Render children directly on login, register and verify pages
+  if (pathname === '/login' || pathname === '/register' || pathname === '/verify') {
     return <>{children}</>;
   }
 

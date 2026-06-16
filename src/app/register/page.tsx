@@ -91,9 +91,6 @@ export default function RegisterPage() {
               <CheckCircle className="w-12 h-12 text-green-500" />
               <span>{success}</span>
             </div>
-            <p className="text-xs text-gray-500">
-              * Nota: Si estás probando localmente y no tienes el correo configurado, puedes ver el enlace de activación en la consola de logs.
-            </p>
             <Link
               href="/login"
               className="w-full py-3.5 bg-[#1B199A] text-white font-bold rounded-full shadow-lg hover:bg-[#342ede] transition-all flex items-center justify-center gap-2"

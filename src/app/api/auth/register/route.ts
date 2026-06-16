@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Registro exitoso. Revisa tu correo (o la consola de logs) para verificar tu cuenta antes de ingresar.'
+      message: 'Registro exitoso. Revisa tu correo electrónico para verificar tu cuenta antes de ingresar.'
     });
   } catch (error: any) {
     console.error('Registration API error:', error);
