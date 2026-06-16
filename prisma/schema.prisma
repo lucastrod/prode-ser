@@ -1,0 +1,108 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Stage {
+  GROUP
+  ROUND_32
+  ROUND_16
+  QUARTER
+  SEMI
+  THIRD_PLACE
+  FINAL
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  CANCELLED
+}
+
+model User {
+  id                String       @id @db.Uuid // Matches Supabase Auth User ID or custom UUID
+  name              String
+  email             String       @unique
+  passwordHash      String       @map("password_hash")
+  role              Role         @default(USER)
+  active            Boolean      @default(true)
+  emailVerified     Boolean      @default(false) @map("email_verified")
+  verificationToken String?      @map("verification_token")
+  avatarUrl         String?      @map("avatar_url")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  predictions       Prediction[]
+  standing          Standing?
+
+  @@map("users")
+}
+
+model Match {
+  id              Int          @id @default(autoincrement())
+  externalMatchId String?      @unique @map("external_match_id")
+  homeTeam        String       @map("home_team")
+  awayTeam        String       @map("away_team")
+  matchDate       DateTime     @map("match_date")
+  groupName       String       @map("group_name")
+  stage           Stage        @default(GROUP)
+  status          MatchStatus  @default(SCHEDULED)
+  homeScore       Int?         @map("home_score")
+  awayScore       Int?         @map("away_score")
+  predictions     Prediction[]
+
+  @@map("matches")
+}
+
+model Prediction {
+  id                 Int      @id @default(autoincrement())
+  userId             String   @map("user_id") @db.Uuid
+  matchId            Int      @map("match_id")
+  predictedHomeScore Int      @map("predicted_home_score")
+  predictedAwayScore Int      @map("predicted_away_score")
+  points             Int?
+  createdAt          DateTime @default(now()) @map("created_at")
+  
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match              Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, matchId])
+  @@map("predictions")
+}
+
+model Standing {
+  id              Int      @id @default(autoincrement())
+  userId          String   @unique @map("user_id") @db.Uuid
+  totalPoints     Int      @default(0) @map("total_points")
+  exactScores     Int      @default(0) @map("exact_scores")
+  correctOutcomes Int      @default(0) @map("correct_outcomes")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("standings")
+}
+
+model Prize {
+  id          Int     @id @default(autoincrement())
+  position    Int     @unique
+  title       String
+  description String
+  enabled     Boolean @default(true)
+
+  @@map("prizes")
+}
+
+model HealthCheck {
+  id       Int      @id @default(1)
+  lastPing DateTime @updatedAt @map("last_ping")
+
+  @@map("health_checks")
+}

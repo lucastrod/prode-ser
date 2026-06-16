@@ -1,0 +1,211 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&family=Roboto+Slab:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-sya-orange: #1B199A;
+  --color-sya-orange-hover: #342ede;
+  --color-sya-blue: #4f46e5;
+  --color-sya-bg-gray: #EFEFEF;
+  --font-sans: 'Raleway', 'Roboto', sans-serif;
+  --font-serif: 'Roboto Slab', serif;
+}
+
+:root {
+  --background: #F3F4F6;
+  --foreground: #1F2937;
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --border-color: rgba(229, 231, 235, 0.8);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* System preference dark mode */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --background: #0B0F19;
+    --foreground: #F9FAFB;
+    --card-bg: rgba(17, 24, 39, 0.8);
+    --border-color: rgba(75, 85, 99, 0.4);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+}
+
+/* Forced class-based dark mode */
+.dark {
+  --background: #0B0F19;
+  --foreground: #F9FAFB;
+  --card-bg: rgba(17, 24, 39, 0.8);
+  --border-color: rgba(75, 85, 99, 0.4);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Forced class-based light mode override */
+.light {
+  --background: #F3F4F6;
+  --foreground: #1F2937;
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --border-color: rgba(229, 231, 235, 0.8);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom premium styles */
+.sya-glass {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--glass-shadow);
+  border-radius: 24px;
+}
+
+.sya-card-accent {
+  border-top: 6px solid #1B199A;
+  border-bottom: 6px solid #1B199A;
+}
+
+.sya-button-primary {
+  background-color: #1B199A;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  border-radius: 9999px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px 0 rgba(27, 25, 154, 0.4);
+}
+
+.sya-button-primary:hover:not(:disabled) {
+  background-color: #342ede;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px 0 rgba(27, 25, 154, 0.6);
+}
+
+.sya-button-primary:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.sya-button-primary:disabled {
+  background-color: #9CA3AF;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.sya-button-secondary {
+  background-color: transparent;
+  color: #1B199A;
+  border: 2px solid #1B199A;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+}
+
+.sya-button-secondary:hover:not(:disabled) {
+  background-color: rgba(27, 25, 154, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Match status badge styles */
+.badge-pending {
+  background-color: rgba(156, 163, 175, 0.15);
+  color: #9CA3AF;
+}
+
+.badge-locked {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+}
+
+.badge-live {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #F59E0B;
+}
+
+.badge-finished {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+}
+
+/* Slide in animation */
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 20px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.8);
+}
+
+/* Hide default spinner arrows on numeric inputs for cleaner styling and better UX */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.no-spinner {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
