@@ -363,7 +363,10 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
       {/* Floating Bottom Navigation Bar for Mobile */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-[#111827] border-t border-gray-200 dark:border-gray-800 flex justify-around py-3 px-2 shadow-lg backdrop-blur-md bg-opacity-95">
-        {navItems.slice(0, 5).map((item) => {
+        {[
+          ...navItems.slice(0, 5),
+          ...(profile.role === 'ADMIN' ? [adminNav] : [])
+        ].map((item) => {
           const Icon = item.icon;
           const active = pathname === item.href;
           return (
@@ -375,7 +378,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               }`}
             >
               <Icon className={`w-5 h-5 ${active ? 'scale-110 stroke-[2.5px]' : 'scale-100'}`} />
-              <span>{item.name.split(' ')[0]}</span>
+              <span>{item.name === 'Panel de Control' ? 'Admin' : item.name.split(' ')[0]}</span>
             </Link>
           );
         })}

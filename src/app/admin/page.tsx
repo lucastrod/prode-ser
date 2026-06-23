@@ -74,6 +74,11 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [syncToast, setSyncToast] = useState<{ matches: string[]; visible: boolean } | null>(null);
+
+  // Filters for matches and results
+  const [filterStage, setFilterStage] = useState<string>('ALL');
+  const [filterStatus, setFilterStatus] = useState<string>('ALL');
 
   // Forms
   const [userForm, setUserForm] = useState<{ id: string; name: string; email: string; role: 'USER' | 'ADMIN'; password: string }>({ id: '', name: '', email: '', role: 'USER', password: '' });
@@ -154,9 +159,50 @@ export default function AdminPage() {
     }
   };
 
+  const handleGenerateKnockout = async () => {
+    setActionLoading(true);
+    try {
+      const res = await fetch('/api/admin/knockout/generate', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`✅ ${data.message}\n\nCreados:\n${(data.created || []).join('\n') || 'Ninguno nuevo'}`);
+        await loadData();
+      } else {
+        alert('❌ Error: ' + (data.error || 'desconocido'));
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error al generar el bracket.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleResolveKnockout = async () => {
+    setActionLoading(true);
+    try {
+      const res = await fetch('/api/admin/knockout/resolve', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`✅ ${data.message}\n\nResueltos:\n${(data.resolved || []).join('\n') || 'Ninguno nuevo'}\n\nPendientes:\n${(data.skipped || []).join('\n') || 'Ninguno'}`);
+        await loadData();
+      } else {
+        alert('❌ Error: ' + (data.error || 'desconocido'));
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error al resolver cruces.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleForceSync = async () => {
     setActionLoading(true);
     setSyncMessage(null);
+    // Reset any open editing state so sync doesn't leave form open
+    setEditingId(null);
+    setMatchForm({ id: 0, homeTeam: '', awayTeam: '', matchDate: '', groupName: 'Grupo A', status: 'SCHEDULED', homeScore: '', awayScore: '' });
     try {
       const res = await fetch('/api/admin/matches/sync-preview');
       const data = await res.json();
@@ -168,11 +214,12 @@ export default function AdminPage() {
 
       if (!data.matches || data.matches.length === 0) {
         setSyncMessage({ type: 'error', text: 'No hay resultados nuevos en ESPN para los partidos pendientes.' });
+        setTimeout(() => setSyncMessage(null), 5000);
         return;
       }
 
-      // Guardar todos los partidos encontrados directamente en la BD
-      let saved = 0;
+      // Guardar todos los partidos encontrados directamente en la BD sin intervención manual
+      const savedMatches: string[] = [];
       for (const suggested of data.matches) {
         const original = matchesList.find((m) => m.id === suggested.id);
         if (!original) continue;
@@ -192,7 +239,7 @@ export default function AdminPage() {
             }),
           });
           if (saveRes.ok) {
-            saved++;
+            savedMatches.push(`${original.homeTeam} ${suggested.homeScore} - ${suggested.awayScore} ${original.awayTeam}`);
           } else {
             const errData = await saveRes.json();
             console.error(`Error guardando partido ${original.id}:`, errData.error);
@@ -202,18 +249,26 @@ export default function AdminPage() {
         }
       }
 
+      // Reset form/editing state before reloading to prevent stale UI
+      setEditingId(null);
+      setMatchForm({ id: 0, homeTeam: '', awayTeam: '', matchDate: '', groupName: 'Grupo A', status: 'SCHEDULED', homeScore: '', awayScore: '' });
       await loadData();
-      setSyncMessage({
-        type: saved > 0 ? 'success' : 'error',
-        text: saved > 0
-          ? `✅ ${saved} resultado${saved !== 1 ? 's' : ''} guardado${saved !== 1 ? 's' : ''} automáticamente.`
-          : 'Se encontraron partidos en ESPN pero ninguno pudo guardarse.',
-      });
-      // Auto-ocultar mensaje tras 5 segundos
+
+      if (savedMatches.length > 0) {
+        setSyncToast({ matches: savedMatches, visible: true });
+        setTimeout(() => setSyncToast(null), 8000);
+        setSyncMessage({
+          type: 'success',
+          text: `✅ ${savedMatches.length} resultado${savedMatches.length !== 1 ? 's' : ''} sincronizado${savedMatches.length !== 1 ? 's' : ''}.`,
+        });
+      } else {
+        setSyncMessage({ type: 'error', text: 'Se encontraron partidos en ESPN pero ninguno pudo guardarse.' });
+      }
       setTimeout(() => setSyncMessage(null), 5000);
     } catch (err) {
       console.error(err);
       setSyncMessage({ type: 'error', text: 'Error inesperado al sincronizar con ESPN.' });
+      setTimeout(() => setSyncMessage(null), 5000);
     } finally {
       setActionLoading(false);
     }
@@ -399,9 +454,22 @@ export default function AdminPage() {
     }
   };
 
+  const filteredMatchesList = matchesList.filter((m) => {
+    // 1. Status Filter
+    if (filterStatus === 'PENDING' && m.status !== 'SCHEDULED') return false;
+    if (filterStatus === 'LIVE' && m.status !== 'LIVE') return false;
+    if (filterStatus === 'FINISHED' && m.status !== 'FINISHED') return false;
+
+    // 2. Stage / Group Filter
+    if (filterStage === 'ALL') return true;
+    if (filterStage === 'GROUP_ALL') return m.groupName.startsWith('Grupo') || m.groupName.startsWith('Group');
+    return m.groupName === filterStage || m.groupName === filterStage.replace('Grupo', 'Group') || m.groupName === filterStage.replace('Group', 'Grupo');
+  });
+
   if (!profile || profile.role !== 'ADMIN') return null;
 
   return (
+    <>
     <div className="space-y-6 pb-12">
       
       {/* Title */}
@@ -415,7 +483,7 @@ export default function AdminPage() {
           </p>
         </div>
 
-        {/* Global Action Buttons */}
+         {/* Global Action Buttons */}
         <div className="flex flex-col items-end gap-2 shrink-0">
           <div className="flex flex-wrap gap-2">
             <button
@@ -427,12 +495,28 @@ export default function AdminPage() {
               Importar Fixture (Grupo)
             </button>
             <button
+              onClick={handleGenerateKnockout}
+              disabled={actionLoading}
+              className="py-2.5 px-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <Database className="w-4 h-4" />
+              Generar Bracket
+            </button>
+            <button
+              onClick={handleResolveKnockout}
+              disabled={actionLoading}
+              className="py-2.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <CheckCircle className="w-4 h-4" />
+              Resolver Cruces
+            </button>
+            <button
               onClick={handleForceSync}
               disabled={actionLoading}
               className="py-2.5 px-4 sya-button-primary text-xs flex items-center gap-1.5 disabled:opacity-50"
             >
               <RefreshCw className={`w-4 h-4 ${actionLoading ? 'animate-spin' : ''}`} />
-              Sincronizar Resultados (ESPN)
+              Sincronizar Resultados
             </button>
           </div>
           {syncMessage && (
@@ -478,6 +562,54 @@ export default function AdminPage() {
           );
         })}
       </div>
+
+      {(activeTab === 'matches' || activeTab === 'results') && (
+        <div className="flex flex-wrap gap-4 bg-gray-500/5 p-4 rounded-xl items-center animate-slide-up">
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold text-gray-400 uppercase block">Grupo / Fase</span>
+            <select
+              value={filterStage}
+              onChange={(e) => setFilterStage(e.target.value)}
+              className="block w-48 py-1.5 px-3 bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none"
+            >
+              <option value="ALL">Todos los grupos/fases</option>
+              <option value="GROUP_ALL">Toda la Fase de Grupos</option>
+              <option value="Grupo A">Grupo A</option>
+              <option value="Grupo B">Grupo B</option>
+              <option value="Grupo C">Grupo C</option>
+              <option value="Grupo D">Grupo D</option>
+              <option value="Grupo E">Grupo E</option>
+              <option value="Grupo F">Grupo F</option>
+              <option value="Grupo G">Grupo G</option>
+              <option value="Grupo H">Grupo H</option>
+              <option value="Grupo I">Grupo I</option>
+              <option value="Grupo J">Grupo J</option>
+              <option value="Grupo K">Grupo K</option>
+              <option value="Grupo L">Grupo L</option>
+              <option value="Round of 32">Round of 32</option>
+              <option value="Round of 16">Octavos de Final</option>
+              <option value="Cuartos de Final">Cuartos de Final</option>
+              <option value="Semifinales">Semifinales</option>
+              <option value="3er Puesto">3er Puesto</option>
+              <option value="Gran Final">Gran Final</option>
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold text-gray-400 uppercase block">Estado</span>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="block w-48 py-1.5 px-3 bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none"
+            >
+              <option value="ALL">Todos los estados</option>
+              <option value="PENDING">Pendientes</option>
+              <option value="LIVE">En Juego</option>
+              <option value="FINISHED">Finalizados</option>
+            </select>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="sya-glass p-20 text-center text-gray-400 font-semibold animate-pulse">
@@ -747,7 +879,7 @@ export default function AdminPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-800 text-sm font-semibold">
-                      {matchesList.map((m) => (
+                      {filteredMatchesList.map((m) => (
                         <tr key={m.id} className="hover:bg-gray-500/5">
                           <td className="py-3">
                             <span className="font-extrabold">{m.homeTeam} vs {m.awayTeam}</span>
@@ -814,7 +946,7 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-800 text-sm font-semibold">
-                    {matchesList.map((m) => {
+                    {filteredMatchesList.map((m) => {
                       const isEditingThis = editingId === m.id;
                       return (
                         <tr id={`match_${m.id}`} key={m.id} className="hover:bg-gray-500/5">
@@ -906,7 +1038,7 @@ export default function AdminPage() {
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-4">
-                {matchesList.map((m) => {
+                {filteredMatchesList.map((m) => {
                   const isEditingThis = editingId === m.id;
                   return (
                     <div id={`match_mob_${m.id}`} key={`mob_${m.id}`} className="bg-gray-500/5 border border-gray-200 dark:border-gray-800 rounded-xl p-4 flex flex-col gap-3">
@@ -1124,6 +1256,45 @@ export default function AdminPage() {
       )}
 
     </div>
+
+      {/* Sync Toast Notification */}
+      {syncToast?.visible && (
+        <div
+          className="fixed bottom-6 right-6 z-50 animate-slide-up"
+          style={{ maxWidth: '360px' }}
+        >
+          <div className="bg-gray-900 border border-green-500/30 rounded-2xl shadow-2xl p-4 flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
+                  <CheckCircle className="w-4 h-4 text-green-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-extrabold text-white">Resultados sincronizados</p>
+                  <p className="text-xs text-gray-400 font-medium">ESPN · Automático</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSyncToast(null)}
+                className="text-gray-500 hover:text-white text-lg leading-none shrink-0"
+                aria-label="Cerrar"
+              >
+                ×
+              </button>
+            </div>
+            <ul className="space-y-1.5 border-t border-gray-700 pt-3">
+              {syncToast.matches.map((m, i) => (
+                <li key={i} className="text-xs font-bold text-green-400 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
+                  {m}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 export const dynamic = 'force-dynamic';
+

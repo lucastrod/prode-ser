@@ -52,7 +52,13 @@ export const TEAM_TRANSLATIONS: Record<string, string> = {
   "Turkey": "Turquía",
   "USA": "Estados Unidos",
   "Uruguay": "Uruguay",
-  "Uzbekistan": "Uzbekistán"
+  "Uzbekistan": "Uzbekistán",
+  // ESPN displayName variants
+  "Congo DR": "República Democrática del Congo",
+  "Bosnia-Herzegovina": "Bosnia y Herzegovina",
+  "Czechia": "República Checa",
+  "Türkiye": "Turquía",
+  "United States": "Estados Unidos",
 };
 
 export function parseMatchDateTime(dateStr: string, timeStr: string): Date {
@@ -213,12 +219,18 @@ export async function syncMatchResults(apiFootballKey?: string) {
       
       if (['FT', 'AET', 'PEN'].includes(statusShort)) {
         // Match finished officially!
+        let penaltyWinner: string | null = null;
+        if (statusShort === 'PEN') {
+          penaltyWinner = homeScore > awayScore ? 'home' : 'away';
+        }
+
         await db.match.update({
           where: { id: match.id },
           data: {
             status: MatchStatus.FINISHED,
             homeScore: isNaN(homeScore) ? null : homeScore,
             awayScore: isNaN(awayScore) ? null : awayScore,
+            penaltyWinner,
           },
         });
         await recalculateMatchPoints(match.id);

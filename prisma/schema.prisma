@@ -56,6 +56,7 @@ model Match {
   status          MatchStatus  @default(SCHEDULED)
   homeScore       Int?         @map("home_score")
   awayScore       Int?         @map("away_score")
+  penaltyWinner   String?      @map("penalty_winner") // "home" | "away" | null — only for knockout
   predictions     Prediction[]
 
   @@map("matches")
