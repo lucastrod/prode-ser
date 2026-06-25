@@ -149,7 +149,7 @@ function MatchCard({ match, onShowPredictions }: { match: KnockoutMatch; onShowP
           className="w-full py-2 bg-gray-500/5 hover:bg-sya-orange/10 hover:text-sya-orange text-gray-400 font-bold text-[9px] uppercase tracking-wider border-t border-gray-200 dark:border-gray-800 flex items-center justify-center gap-1 transition-all"
         >
           <Eye className="w-3.5 h-3.5" />
-          <span>Ver Predicciones</span>
+          <span>Predicciones</span>
         </button>
       )}
     </div>

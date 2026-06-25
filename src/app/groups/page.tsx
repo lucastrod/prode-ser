@@ -532,7 +532,7 @@ export default function GroupsPage() {
                           className="px-3 py-1.5 bg-sya-orange/10 hover:bg-sya-orange/20 text-sya-orange font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                          <span>Ver Predicciones</span>
+                          <span>Predicciones</span>
                         </button>
                       )}
                     </div>

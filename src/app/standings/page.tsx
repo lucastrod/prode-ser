@@ -174,7 +174,7 @@ export default function StandingsPage() {
                   <th className="px-6 py-4 text-center">Puntos</th>
                   <th className="px-6 py-4 text-center">Exactos</th>
                   <th className="px-6 py-4 text-center">Aciertos (Winner/Draw)</th>
-                  <th className="px-6 py-4 text-center w-36">Auditoría</th>
+                  <th className="px-6 py-4 text-center w-32">Predicciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
@@ -248,7 +248,7 @@ export default function StandingsPage() {
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sya-orange/10 hover:bg-sya-orange/20 text-sya-orange font-bold text-xs rounded-xl transition-all"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                          <span>Ver Predicciones</span>
+                          <span>Ver</span>
                         </button>
                       </td>
 

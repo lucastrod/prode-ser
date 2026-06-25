@@ -249,7 +249,7 @@ export default function PredictionsPage() {
                   <th className="px-6 py-4 text-center">Oficial</th>
                   <th className="px-6 py-4 text-center">Puntos</th>
                   <th className="px-6 py-4 text-center">Estado</th>
-                  <th className="px-6 py-4 text-center w-36">Comunidad</th>
+                  <th className="px-6 py-4 text-center w-36">Predicciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
@@ -322,7 +322,7 @@ export default function PredictionsPage() {
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sya-orange/10 hover:bg-sya-orange/20 text-sya-orange font-bold text-xs rounded-xl transition-all"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                          <span>Ver Predicciones</span>
+                          <span>Ver</span>
                         </button>
                       ) : (
                         <span className="text-[10px] text-gray-400 font-semibold italic">Cierra 15m antes</span>
