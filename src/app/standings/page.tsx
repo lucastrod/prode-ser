@@ -245,10 +245,10 @@ export default function StandingsPage() {
                             avatarUrl: (row.user as any).avatarUrl || null,
                             totalPoints: row.totalPoints
                           })}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1B199A]/10 hover:bg-[#1B199A]/20 text-[#1B199A] font-bold text-xs rounded-xl transition-all"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sya-orange/10 hover:bg-sya-orange/20 text-sya-orange font-bold text-xs rounded-xl transition-all"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                          <span>Ver Prodes</span>
+                          <span>Ver Predicciones</span>
                         </button>
                       </td>
 

@@ -322,7 +322,7 @@ export default function PredictionsPage() {
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sya-orange/10 hover:bg-sya-orange/20 text-sya-orange font-bold text-xs rounded-xl transition-all"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                          <span>Ver Prodes</span>
+                          <span>Ver Predicciones</span>
                         </button>
                       ) : (
                         <span className="text-[10px] text-gray-400 font-semibold italic">Cierra 15m antes</span>

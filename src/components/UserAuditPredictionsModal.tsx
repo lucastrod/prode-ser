@@ -110,9 +110,9 @@ export default function UserAuditPredictionsModal({
       <div className="relative max-w-xl w-full bg-white dark:bg-[#111827] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 flex flex-col max-h-[85vh] overflow-hidden animate-slide-up">
         
         {/* Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-[#1B199A]/5">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-sya-orange/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full overflow-hidden border border-[#1B199A]/30 bg-gray-200 dark:bg-gray-800 flex items-center justify-center font-bold text-sm uppercase text-gray-500 shrink-0">
+            <div className="w-10 h-10 rounded-full overflow-hidden border border-sya-orange/30 bg-gray-200 dark:bg-gray-800 flex items-center justify-center font-bold text-sm uppercase text-gray-500 shrink-0">
               {avatarUrl ? (
                 <img src={avatarUrl} alt={userName} className="w-full h-full object-cover" />
               ) : (
@@ -120,10 +120,10 @@ export default function UserAuditPredictionsModal({
               )}
             </div>
             <div>
-              <h3 className="font-extrabold text-sm text-[#1B199A] uppercase tracking-widest">Auditoría de Prodes</h3>
+              <h3 className="font-extrabold text-sm text-sya-orange uppercase tracking-widest">Auditoría de Prodes</h3>
               <p className="font-black text-lg text-gray-800 dark:text-white flex items-center gap-2">
                 {userName}
-                <span className="text-xs bg-[#1B199A]/10 text-[#1B199A] px-2.5 py-0.5 rounded-full">
+                <span className="text-xs bg-sya-orange/10 text-sya-orange px-2.5 py-0.5 rounded-full">
                   {totalPoints} Puntos Totales
                 </span>
               </p>
@@ -194,7 +194,7 @@ export default function UserAuditPredictionsModal({
                         {/* Pronosticado */}
                         <div className="text-right">
                           <span className="text-[9px] uppercase font-bold text-gray-400 block">Prode</span>
-                          <span className="px-2 py-0.5 bg-gray-500/10 rounded font-black text-xs text-gray-800 dark:text-gray-150">
+                          <span className="px-2 py-0.5 bg-gray-500/20 rounded font-black text-xs text-gray-800 dark:text-gray-200">
                             {p.predictedHomeScore} - {p.predictedAwayScore}
                           </span>
                         </div>
