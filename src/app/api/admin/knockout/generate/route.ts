@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Stage, MatchStatus } from '@prisma/client';
 import db from '@/lib/db';
-import fs from 'fs';
-import path from 'path';
-import { parseMatchDateTime } from '@/lib/sync-matches';
 
 interface TeamStanding {
   team: string;
@@ -72,160 +69,156 @@ function buildGroupStandings(matches: any[]): GroupStanding[] {
     }));
 }
 
-// Map fixture JSON round strings → Prisma Stage enum
-const ROUND_TO_STAGE: Record<string, Stage> = {
-  'Round of 32':        Stage.ROUND_32,
-  'Round of 16':        Stage.ROUND_16,
-  'Quarter-final':      Stage.QUARTER,
-  'Semi-final':         Stage.SEMI,
-  'Match for third place': Stage.THIRD_PLACE,
-  'Final':              Stage.FINAL,
-};
-
-// Map fixture JSON round strings → human-readable group name
-const ROUND_TO_GROUP: Record<string, string> = {
-  'Round of 32':        'Round of 32',
-  'Round of 16':        'Round of 16',
-  'Quarter-final':      'Cuartos de Final',
-  'Semi-final':         'Semifinales',
-  'Match for third place': '3er Puesto',
-  'Final':              'Gran Final',
-};
-
-// Fallback qualifiers when starting directly from the knockout stage (no group standings in DB)
+// Fallback qualifiers — used when group stage is not yet finished in DB
 const FALLBACK_QUALIFIERS: Record<string, string> = {
-  "1A": "México", "2A": "República Checa",
-  "1B": "Suiza", "2B": "Canadá",
-  "1C": "Brasil", "2C": "Marruecos",
-  "1D": "Estados Unidos", "2D": "Australia",
-  "1E": "Alemania", "2E": "Ecuador",
-  "1F": "Países Bajos", "2F": "Japón",
-  "1G": "Bélgica", "2G": "Irán",
-  "1H": "España", "2H": "Uruguay",
-  "1I": "Francia", "2I": "Senegal",
-  "1J": "Argentina", "2J": "Austria",
-  "1K": "Portugal", "2K": "Colombia",
-  "1L": "Inglaterra", "2L": "Croacia",
+  "1A": "México",          "2A": "República Checa",
+  "1B": "Suiza",           "2B": "Canadá",
+  "1C": "Brasil",          "2C": "Marruecos",
+  "1D": "Estados Unidos",  "2D": "Australia",
+  "1E": "Alemania",        "2E": "Ecuador",
+  "1F": "Países Bajos",    "2F": "Japón",
+  "1G": "Bélgica",         "2G": "Irán",
+  "1H": "España",          "2H": "Uruguay",
+  "1I": "Francia",         "2I": "Senegal",
+  "1J": "Argentina",       "2J": "Austria",
+  "1K": "Portugal",        "2K": "Colombia",
+  "1L": "Inglaterra",      "2L": "Croacia",
   "3A/B/C/D/F": "Corea del Sur",
   "3C/D/F/G/H": "Túnez",
   "3C/E/F/H/I": "Ghana",
   "3E/H/I/J/K": "Cabo Verde",
-  "3B/E/F/I/J": "Catar",
+  "3B/E/F/I/J": "Qatar",
   "3A/E/H/I/J": "Sudáfrica",
   "3E/F/G/I/J": "Egipto",
-  "3D/E/I/J/L": "Panamá"
+  "3D/E/I/J/L": "Panamá",
 };
 
-type SlotResult = {
-  team: string | null;
-  label: string;
-};
+/** Returns true if a team name is an unresolved placeholder (e.g. "1A", "3A/B/C", "W73", "L74") */
+function isPlaceholder(name: string): boolean {
+  return (
+    /^[12][A-L]$/.test(name) ||           // 1A, 2B, ...
+    /^3[A-L/]+$/.test(name) ||            // 3A/B/C/D/F, ...
+    /^[WL]\d+$/.test(name) ||             // W73, L74 (winner/loser of match N)
+    name.startsWith('[')                   // [1° Grupo A], etc.
+  );
+}
 
-function resolveSlot(
+function resolveFromStandings(
   placeholder: string,
-  groupStandings: { groupName: string; teams: { team: string }[] }[]
-): SlotResult {
-  const getTeam = (pos: number, groupLetter: string) => {
-    const full = `Grupo ${groupLetter}`;
-    const group = groupStandings.find((g) => g.groupName === full);
-    return group?.teams[pos]?.team ?? null;
-  };
-
+  groupStandings: GroupStanding[]
+): string | null {
   const simpleMatch = placeholder.match(/^([12])([A-L])$/);
   if (simpleMatch) {
     const pos = parseInt(simpleMatch[1]) - 1;
     const letter = simpleMatch[2];
-    const team = getTeam(pos, letter);
-    return {
-      team,
-      label: `${pos === 0 ? '1°' : '2°'} Grupo ${letter}`,
-    };
+    const full = `Grupo ${letter}`;
+    const group = groupStandings.find((g) => g.groupName === full);
+    return group?.teams[pos]?.team ?? null;
   }
-
-  const thirdMatch = placeholder.match(/^3([A-L\/]+)$/);
-  if (thirdMatch) {
-    const groups = thirdMatch[1].split('/');
-    return {
-      team: null,
-      label: `Mejor 3° ${groups.join('/')}`,
-    };
-  }
-
-  return { team: null, label: placeholder };
+  // Third-place slots are resolved via fallback only
+  return null;
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
-    const filePath = path.join(process.cwd(), 'fixture', 'worldcup.json');
-    const raw = fs.readFileSync(filePath, 'utf-8');
-    const data = JSON.parse(raw);
-
-    // Get group standings
+    // 1. Build group standings from DB
     const groupMatches = await db.match.findMany({
       where: { stage: Stage.GROUP },
       orderBy: { matchDate: 'asc' },
     });
     const groupStandings = buildGroupStandings(groupMatches);
 
-    const knockoutRounds = Object.keys(ROUND_TO_STAGE);
-    const knockoutFixtures = (data.matches || []).filter(
-      (m: any) => knockoutRounds.includes(m.round)
-    );
+    // 2. Get all existing knockout matches
+    const knockoutMatches = await db.match.findMany({
+      where: { stage: { not: Stage.GROUP } },
+      orderBy: { matchDate: 'asc' },
+    });
 
-    const created: string[] = [];
+    // 3. Deduplicate: if there are multiple matches with the same stage + matchDate,
+    //    keep the one with a resolved team name (not placeholder), delete the others.
+    const seen = new Map<string, { id: number; resolved: boolean }>();
+    const toDelete: number[] = [];
+
+    for (const m of knockoutMatches) {
+      const key = `${m.stage}_${new Date(m.matchDate).toISOString()}`;
+      const isResolved = !isPlaceholder(m.homeTeam) && !isPlaceholder(m.awayTeam);
+
+      if (!seen.has(key)) {
+        seen.set(key, { id: m.id, resolved: isResolved });
+      } else {
+        const existing = seen.get(key)!;
+        if (isResolved && !existing.resolved) {
+          // This one is better — delete the old one, keep this
+          toDelete.push(existing.id);
+          seen.set(key, { id: m.id, resolved: true });
+        } else {
+          // Keep the existing one, delete this duplicate
+          toDelete.push(m.id);
+        }
+      }
+    }
+
+    // Delete duplicate matches (cascade predictions first if any)
+    if (toDelete.length > 0) {
+      await db.prediction.deleteMany({ where: { matchId: { in: toDelete } } });
+      await db.match.deleteMany({ where: { id: { in: toDelete } } });
+    }
+
+    // 4. Reload after dedup
+    const remaining = await db.match.findMany({
+      where: { stage: { not: Stage.GROUP } },
+      orderBy: { matchDate: 'asc' },
+    });
+
+    // 5. Resolve placeholders on remaining matches
+    const resolved: string[] = [];
     const skipped: string[] = [];
 
-    for (const fixture of knockoutFixtures) {
-      const stage = ROUND_TO_STAGE[fixture.round];
-      const groupName = ROUND_TO_GROUP[fixture.round];
-      const matchDate = parseMatchDateTime(fixture.date, fixture.time);
-      const fixtureNum = fixture.num ? String(fixture.num) : null;
+    for (const match of remaining) {
+      const homeIsPlaceholder = isPlaceholder(match.homeTeam);
+      const awayIsPlaceholder = isPlaceholder(match.awayTeam);
 
-      let homeTeam: string;
-      let awayTeam: string;
+      if (!homeIsPlaceholder && !awayIsPlaceholder) continue; // Already resolved
 
-      if (fixture.round === 'Round of 32') {
-        const slot1 = resolveSlot(fixture.team1, groupStandings);
-        const slot2 = resolveSlot(fixture.team2, groupStandings);
-        homeTeam = slot1.team ?? FALLBACK_QUALIFIERS[fixture.team1] ?? `[${slot1.label}]`;
-        awayTeam = slot2.team ?? FALLBACK_QUALIFIERS[fixture.team2] ?? `[${slot2.label}]`;
-      } else {
-        homeTeam = fixture.team1;
-        awayTeam = fixture.team2;
-      }
+      let homeTeam = match.homeTeam;
+      let awayTeam = match.awayTeam;
+      let changed = false;
 
-      const externalId = fixtureNum
-        ? (fixture.round === 'Round of 32' ? `r32_${fixtureNum}` : fixtureNum)
-        : null;
-
-      if (externalId) {
-        const existing = await db.match.findUnique({ where: { externalMatchId: externalId } });
-        if (existing) {
-          skipped.push(`[${fixture.round}] ${homeTeam} vs ${awayTeam}`);
-          continue;
+      if (homeIsPlaceholder) {
+        const fromStandings = resolveFromStandings(match.homeTeam, groupStandings);
+        const result = fromStandings ?? FALLBACK_QUALIFIERS[match.homeTeam] ?? null;
+        if (result) {
+          homeTeam = result;
+          changed = true;
         }
       }
 
-      await db.match.create({
-        data: {
-          ...(externalId ? { externalMatchId: externalId } : {}),
-          homeTeam,
-          awayTeam,
-          matchDate,
-          groupName,
-          stage,
-          status: MatchStatus.SCHEDULED,
-        },
-      });
+      if (awayIsPlaceholder) {
+        const fromStandings = resolveFromStandings(match.awayTeam, groupStandings);
+        const result = fromStandings ?? FALLBACK_QUALIFIERS[match.awayTeam] ?? null;
+        if (result) {
+          awayTeam = result;
+          changed = true;
+        }
+      }
 
-      created.push(`[${fixture.round}] ${homeTeam} vs ${awayTeam}`);
+      if (changed) {
+        await db.match.update({
+          where: { id: match.id },
+          data: { homeTeam, awayTeam },
+        });
+        resolved.push(`${match.homeTeam} vs ${match.awayTeam} → ${homeTeam} vs ${awayTeam}`);
+      } else {
+        skipped.push(`${match.homeTeam} vs ${match.awayTeam} (posición sin resolver)`);
+      }
     }
 
     return NextResponse.json({
       success: true,
-      created,
+      deduplicated: toDelete.length,
+      resolved,
       skipped,
-      message: `${created.length} partidos creados, ${skipped.length} ya existían.`,
+      message: `${toDelete.length > 0 ? `${toDelete.length} duplicados eliminados. ` : ''}${resolved.length} equipos resueltos. ${skipped.length} pendientes (${skipped.length > 0 ? 'esperan resultados de grupos' : 'todos listos'}).`,
     });
   } catch (err: any) {
     console.error('Knockout generate error:', err);

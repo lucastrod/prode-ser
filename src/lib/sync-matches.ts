@@ -155,15 +155,12 @@ export async function importFixtures() {
 
 /**
  * Synchronizes match statuses and results.
- * For matches whose kickoff has passed:
- * 1. Locks the match prediction state.
- * 2. If finished (kickoff + 2 hours), retrieves or simulates official result.
- * 3. Triggers points calculations.
+ * Queries ESPN per unique date so historical matches (not just today's) get resolved.
  */
 export async function syncMatchResults(apiFootballKey?: string) {
   const now = new Date();
 
-  // 1. Get all scheduled matches that have passed kickoff or are marked as LIVE
+  // 1. Get all scheduled/live matches that have passed kickoff
   const matchesToProcess = await db.match.findMany({
     where: {
       status: { in: [MatchStatus.SCHEDULED, MatchStatus.LIVE] },
@@ -174,82 +171,97 @@ export async function syncMatchResults(apiFootballKey?: string) {
   if (matchesToProcess.length === 0) return { lockedCount: 0, finishedCount: 0 };
 
   let lockedCount = 0;
-  let finishedCount = 0; // We keep the variable for compatibility but we won't auto-finish
+  let finishedCount = 0;
 
-  // Real Integration with ESPN API (Free, no key needed)
-  let apiData: any;
-  try {
-    const response = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard`);
-    apiData = await response.json();
-  } catch (error: any) {
-    console.error('Failed to fetch from ESPN API:', error.message);
-    return { lockedCount, finishedCount };
+  // 2. Group matches by their UTC calendar date so we query ESPN once per day
+  const matchesByDate = new Map<string, typeof matchesToProcess>();
+  for (const match of matchesToProcess) {
+    const d = new Date(match.matchDate);
+    const dateStr =
+      `${d.getUTCFullYear()}` +
+      `${String(d.getUTCMonth() + 1).padStart(2, '0')}` +
+      `${String(d.getUTCDate()).padStart(2, '0')}`;
+    if (!matchesByDate.has(dateStr)) matchesByDate.set(dateStr, []);
+    matchesByDate.get(dateStr)!.push(match);
   }
 
-  const events = apiData.events || [];
-
-  for (const match of matchesToProcess) {
-    // ESPN team names might differ slightly, but they are usually clean English names like "Mexico", "South Africa"
-    // Let's find the matching event using TEAM_TRANSLATIONS mapped to English, or exact match
+  // 3. Helper: match a DB record against ESPN events list and update DB
+  const tryMatchAndUpdate = async (
+    match: (typeof matchesToProcess)[0],
+    events: any[]
+  ): Promise<boolean> => {
     const apiMatch = events.find((e: any) => {
-      if (!e.competitions || !e.competitions[0] || !e.competitions[0].competitors) return false;
+      if (!e.competitions?.[0]?.competitors) return false;
       const comps = e.competitions[0].competitors;
       if (comps.length < 2) return false;
-      const homeTeamNode = comps.find((c: any) => c.homeAway === 'home');
-      const awayTeamNode = comps.find((c: any) => c.homeAway === 'away');
-      if (!homeTeamNode || !awayTeamNode) return false;
-
-      const apiHome = homeTeamNode.team.displayName;
-      const apiAway = awayTeamNode.team.displayName;
-
-      const apiHomeEs = TEAM_TRANSLATIONS[apiHome] || apiHome;
-      const apiAwayEs = TEAM_TRANSLATIONS[apiAway] || apiAway;
-
+      const homeNode = comps.find((c: any) => c.homeAway === 'home');
+      const awayNode = comps.find((c: any) => c.homeAway === 'away');
+      if (!homeNode || !awayNode) return false;
+      const apiHomeEs = TEAM_TRANSLATIONS[homeNode.team.displayName] || homeNode.team.displayName;
+      const apiAwayEs = TEAM_TRANSLATIONS[awayNode.team.displayName] || awayNode.team.displayName;
       return apiHomeEs === match.homeTeam && apiAwayEs === match.awayTeam;
     });
 
-    if (apiMatch) {
-      const comps = apiMatch.competitions[0].competitors;
-      const homeTeamNode = comps.find((c: any) => c.homeAway === 'home');
-      const awayTeamNode = comps.find((c: any) => c.homeAway === 'away');
-      
-      const homeScore = parseInt(homeTeamNode.score, 10);
-      const awayScore = parseInt(awayTeamNode.score, 10);
-      const statusShort = apiMatch.status.type.shortDetail;
-      
-      if (['FT', 'AET', 'PEN'].includes(statusShort)) {
-        // Match finished officially!
-        let penaltyWinner: string | null = null;
-        if (statusShort === 'PEN') {
-          penaltyWinner = homeScore > awayScore ? 'home' : 'away';
-        }
+    if (!apiMatch) return false;
 
-        await db.match.update({
-          where: { id: match.id },
-          data: {
-            status: MatchStatus.FINISHED,
-            homeScore: isNaN(homeScore) ? null : homeScore,
-            awayScore: isNaN(awayScore) ? null : awayScore,
-            penaltyWinner,
-          },
-        });
-        await recalculateMatchPoints(match.id);
-        finishedCount++;
-      } else {
-        // Update the score in DB, but KEEP status as LIVE
-        await db.match.update({
-          where: { id: match.id },
-          data: {
-            status: MatchStatus.LIVE,
-            homeScore: isNaN(homeScore) ? null : homeScore,
-            awayScore: isNaN(awayScore) ? null : awayScore,
-          },
-        });
-        if (match.status === MatchStatus.SCHEDULED) lockedCount++;
+    const comps = apiMatch.competitions[0].competitors;
+    const homeNode = comps.find((c: any) => c.homeAway === 'home');
+    const awayNode = comps.find((c: any) => c.homeAway === 'away');
+    const homeScore = parseInt(homeNode.score, 10);
+    const awayScore = parseInt(awayNode.score, 10);
+    const statusShort = apiMatch.status?.type?.shortDetail ?? '';
+    const isCompleted = apiMatch.status?.type?.completed === true;
+
+    if (['FT', 'AET', 'PEN', 'Final', 'Full Time'].includes(statusShort) || isCompleted) {
+      let penaltyWinner: string | null = null;
+      if (statusShort === 'PEN') {
+        penaltyWinner = homeScore > awayScore ? 'home' : 'away';
       }
+      await db.match.update({
+        where: { id: match.id },
+        data: {
+          status: MatchStatus.FINISHED,
+          homeScore: isNaN(homeScore) ? null : homeScore,
+          awayScore: isNaN(awayScore) ? null : awayScore,
+          penaltyWinner,
+        },
+      });
+      await recalculateMatchPoints(match.id);
+      finishedCount++;
     } else {
-      // If we didn't find the match in the API, we just lock it if it passed kickoff
-      if (match.status === MatchStatus.SCHEDULED) {
+      // In progress
+      await db.match.update({
+        where: { id: match.id },
+        data: {
+          status: MatchStatus.LIVE,
+          homeScore: isNaN(homeScore) ? null : homeScore,
+          awayScore: isNaN(awayScore) ? null : awayScore,
+        },
+      });
+      if (match.status === MatchStatus.SCHEDULED) lockedCount++;
+    }
+    return true;
+  };
+
+  // 4. For each unique date, fetch ESPN and process matches
+  for (const [dateStr, dateMatches] of matchesByDate) {
+    let events: any[] = [];
+
+    try {
+      const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${dateStr}`;
+      const response = await fetch(url);
+      const apiData = await response.json();
+      events = apiData.events || [];
+    } catch (error: any) {
+      console.error(`ESPN fetch failed for date ${dateStr}:`, error.message);
+      // Continue without ESPN data — we still lock matches below
+    }
+
+    for (const match of dateMatches) {
+      const found = await tryMatchAndUpdate(match, events);
+
+      // Not in ESPN feed but kickoff passed → lock predictions
+      if (!found && match.status === MatchStatus.SCHEDULED) {
         await db.match.update({
           where: { id: match.id },
           data: { status: MatchStatus.LIVE },
@@ -259,5 +271,5 @@ export async function syncMatchResults(apiFootballKey?: string) {
     }
   }
 
-  return { lockedCount, finishedCount: 0 };
+  return { lockedCount, finishedCount };
 }

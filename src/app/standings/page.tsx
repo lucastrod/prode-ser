@@ -2,7 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Trophy, Award, Medal, Sparkles } from 'lucide-react';
+import { Trophy, Award, Medal, Sparkles, Eye } from 'lucide-react';
+import UserAuditPredictionsModal from '@/components/UserAuditPredictionsModal';
+
 
 interface StandingRow {
   id: number;
@@ -18,6 +20,12 @@ export default function StandingsPage() {
   
   const [standings, setStandings] = useState<StandingRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedUserForAudit, setSelectedUserForAudit] = useState<{
+    userId: string;
+    userName: string;
+    avatarUrl: string | null;
+    totalPoints: number;
+  } | null>(null);
 
   useEffect(() => {
     const fetchStandings = async () => {
@@ -166,6 +174,7 @@ export default function StandingsPage() {
                   <th className="px-6 py-4 text-center">Puntos</th>
                   <th className="px-6 py-4 text-center">Exactos</th>
                   <th className="px-6 py-4 text-center">Aciertos (Winner/Draw)</th>
+                  <th className="px-6 py-4 text-center w-36">Auditoría</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
@@ -227,6 +236,22 @@ export default function StandingsPage() {
                         {row.correctOutcomes}
                       </td>
 
+                      {/* Action */}
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() => setSelectedUserForAudit({
+                            userId: row.userId,
+                            userName: row.user.name,
+                            avatarUrl: (row.user as any).avatarUrl || null,
+                            totalPoints: row.totalPoints
+                          })}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1B199A]/10 hover:bg-[#1B199A]/20 text-[#1B199A] font-bold text-xs rounded-xl transition-all"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Ver Prodes</span>
+                        </button>
+                      </td>
+
                     </tr>
                   );
                 })}
@@ -234,6 +259,17 @@ export default function StandingsPage() {
             </table>
           </div>
         </div>
+      )}
+
+      {selectedUserForAudit && (
+        <UserAuditPredictionsModal
+          isOpen={!!selectedUserForAudit}
+          onClose={() => setSelectedUserForAudit(null)}
+          userId={selectedUserForAudit.userId}
+          userName={selectedUserForAudit.userName}
+          avatarUrl={selectedUserForAudit.avatarUrl}
+          totalPoints={selectedUserForAudit.totalPoints}
+        />
       )}
 
     </div>

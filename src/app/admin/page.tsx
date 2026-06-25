@@ -165,7 +165,11 @@ export default function AdminPage() {
       const res = await fetch('/api/admin/knockout/generate', { method: 'POST' });
       const data = await res.json();
       if (res.ok) {
-        alert(`✅ ${data.message}\n\nCreados:\n${(data.created || []).join('\n') || 'Ninguno nuevo'}`);
+        const lines: string[] = [`✅ ${data.message}`];
+        if (data.deduplicated > 0) lines.push(`\n🗑️ Duplicados eliminados: ${data.deduplicated}`);
+        if ((data.resolved || []).length > 0) lines.push(`\n✔ Resueltos:\n${data.resolved.join('\n')}`);
+        if ((data.skipped || []).length > 0) lines.push(`\n⏳ Pendientes (sin resultado de grupo):\n${data.skipped.join('\n')}`);
+        alert(lines.join(''));
         await loadData();
       } else {
         alert('❌ Error: ' + (data.error || 'desconocido'));
@@ -495,22 +499,6 @@ export default function AdminPage() {
               Importar Fixture (Grupo)
             </button>
             <button
-              onClick={handleGenerateKnockout}
-              disabled={actionLoading}
-              className="py-2.5 px-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50"
-            >
-              <Database className="w-4 h-4" />
-              Generar Bracket
-            </button>
-            <button
-              onClick={handleResolveKnockout}
-              disabled={actionLoading}
-              className="py-2.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50"
-            >
-              <CheckCircle className="w-4 h-4" />
-              Resolver Cruces
-            </button>
-            <button
               onClick={handleForceSync}
               disabled={actionLoading}
               className="py-2.5 px-4 sya-button-primary text-xs flex items-center gap-1.5 disabled:opacity-50"
@@ -531,6 +519,68 @@ export default function AdminPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ── Knockout Bracket Panel ────────────────────────────────── */}
+      <div className="sya-glass p-6 border border-indigo-500/20">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center shrink-0">
+            <Database className="w-5 h-5 text-indigo-400" />
+          </div>
+          <div>
+            <h2 className="font-extrabold text-base">Generación de Llaves Eliminatorias</h2>
+            <p className="text-xs text-gray-400 font-medium mt-0.5">
+              Ejecutá estos pasos en orden una vez que los grupos estén completos.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Step 1 */}
+          <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-indigo-500 text-white text-[10px] font-black flex items-center justify-center shrink-0">1</span>
+              <span className="font-extrabold text-sm text-indigo-400">Generar Bracket (Round of 32)</span>
+            </div>
+            <p className="text-xs text-gray-400 font-medium leading-relaxed">
+              Lee las posiciones de cada grupo desde la DB y crea los 32 partidos eliminatorios con los equipos clasificados. Ejecutar una sola vez después que terminen todos los grupos.
+            </p>
+            <button
+              onClick={handleGenerateKnockout}
+              disabled={actionLoading}
+              className="w-full py-2.5 px-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <Database className="w-4 h-4" />
+              {actionLoading ? 'Generando...' : 'Generar Bracket'}
+            </button>
+          </div>
+
+          {/* Step 2 */}
+          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center shrink-0">2</span>
+              <span className="font-extrabold text-sm text-emerald-400">Resolver Cruces Siguientes</span>
+            </div>
+            <p className="text-xs text-gray-400 font-medium leading-relaxed">
+              A medida que avanzan las rondas, rellena automáticamente los equipos de Octavos, Cuartos, Semis y Final usando los ganadores/perdedores de la ronda anterior.
+            </p>
+            <button
+              onClick={handleResolveKnockout}
+              disabled={actionLoading}
+              className="w-full py-2.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <CheckCircle className="w-4 h-4" />
+              {actionLoading ? 'Resolviendo...' : 'Resolver Cruces'}
+            </button>
+          </div>
+        </div>
+
+        <p className="text-[10px] text-gray-500 font-semibold mt-4 flex items-start gap-1.5">
+          <span className="text-amber-400 font-black mt-px">ℹ</span>
+          <span>
+            El Paso 1 se usa una sola vez (el sábado a la noche). El Paso 2 se puede ejecutar periódicamente durante toda la fase eliminatoria para ir completando los cruces a medida que se juegan los partidos.
+          </span>
+        </p>
       </div>
 
       {/* Admin subtabs menu */}

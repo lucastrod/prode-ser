@@ -779,6 +779,67 @@ export const dbClient = {
       finishedMatches: finished,
     };
   },
+  async getPredictionsByMatch(matchId: number) {
+    if (isDbConfigured()) {
+      try {
+        return await db.prediction.findMany({
+          where: { matchId },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        });
+      } catch (err) {
+        console.error('Prisma prediction by match failed:', err);
+      }
+    }
+    // Mock
+    const data = mockDb.readMockDB();
+    return data.predictions
+      .filter((p) => p.matchId === matchId)
+      .map((p) => {
+        const user = data.users.find((u) => u.id === p.userId);
+        return {
+          ...p,
+          user: {
+            id: p.userId,
+            name: user ? user.name : 'Unknown User',
+            avatarUrl: user ? (user as any).avatarUrl : null,
+          },
+        };
+      });
+  },
+
+  async getPredictionsByUser(userId: string) {
+    if (isDbConfigured()) {
+      try {
+        return await db.prediction.findMany({
+          where: { userId },
+          include: {
+            match: true,
+          },
+        });
+      } catch (err) {
+        console.error('Prisma prediction by user failed:', err);
+      }
+    }
+    // Mock
+    const data = mockDb.readMockDB();
+    return data.predictions
+      .filter((p) => p.userId === userId)
+      .map((p) => {
+        const match = data.matches.find((m) => m.id === p.matchId);
+        return {
+          ...p,
+          match,
+        };
+      });
+  },
 
   // --- HEALTH PING ---
   async pingHealth() {

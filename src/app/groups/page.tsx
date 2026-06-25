@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Clock, Lock, Save, CheckCircle, AlertCircle, Calendar, Edit2 } from 'lucide-react';
+import { Clock, Lock, Save, CheckCircle, AlertCircle, Edit2, TrendingUp, Eye } from 'lucide-react';
+import OtherPredictionsModal from '@/components/OtherPredictionsModal';
 
 interface Match {
   id: number;
@@ -21,11 +22,170 @@ interface Prediction {
   predictedAwayScore: number | '';
 }
 
+interface TeamStat {
+  team: string;
+  pj: number;
+  g: number;
+  e: number;
+  p: number;
+  gf: number;
+  gc: number;
+  pts: number;
+}
 
 const GROUPS = [
   'Grupo A', 'Grupo B', 'Grupo C', 'Grupo D', 'Grupo E', 'Grupo F',
   'Grupo G', 'Grupo H', 'Grupo I', 'Grupo J', 'Grupo K', 'Grupo L'
 ];
+
+function computeStandings(matches: Match[]): TeamStat[] {
+  const statsMap: Record<string, TeamStat> = {};
+
+  const ensure = (team: string) => {
+    if (!statsMap[team]) {
+      statsMap[team] = { team, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, pts: 0 };
+    }
+  };
+
+  for (const m of matches) {
+    // Count any match with official scores (FINISHED or LIVE with scores)
+    if (m.homeScore === null || m.awayScore === null) continue;
+
+    ensure(m.homeTeam);
+    ensure(m.awayTeam);
+
+    const home = statsMap[m.homeTeam];
+    const away = statsMap[m.awayTeam];
+
+    home.pj++;
+    away.pj++;
+    home.gf += m.homeScore;
+    home.gc += m.awayScore;
+    away.gf += m.awayScore;
+    away.gc += m.homeScore;
+
+    if (m.homeScore > m.awayScore) {
+      home.g++; home.pts += 3;
+      away.p++;
+    } else if (m.homeScore < m.awayScore) {
+      away.g++; away.pts += 3;
+      home.p++;
+    } else {
+      home.e++; home.pts++;
+      away.e++; away.pts++;
+    }
+  }
+
+  return Object.values(statsMap).sort((a, b) => {
+    if (b.pts !== a.pts) return b.pts - a.pts;
+    const dgA = a.gf - a.gc;
+    const dgB = b.gf - b.gc;
+    if (dgB !== dgA) return dgB - dgA;
+    return b.gf - a.gf;
+  });
+}
+
+function GroupStandingsTable({ matches }: { matches: Match[] }) {
+  const stats = computeStandings(matches);
+  // Show table when at least one match has official scores (FINISHED or LIVE with score)
+  const withScores = matches.filter((m) => m.homeScore !== null && m.awayScore !== null);
+  const finished = matches.filter((m) => m.status === 'FINISHED').length;
+  const live = matches.filter((m) => m.status === 'LIVE' && m.homeScore !== null).length;
+
+  if (withScores.length === 0) return null;
+
+  return (
+    <div className="sya-glass overflow-hidden mt-6">
+      {/* Header */}
+      <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center gap-2">
+        <TrendingUp className="w-4 h-4 text-sya-orange" />
+        <span className="font-extrabold text-sm uppercase tracking-wider">Tabla del Grupo</span>
+        <span className="ml-auto text-[10px] text-gray-400 font-semibold">
+          {finished}/{matches.length} partidos jugados
+          {live > 0 && <span className="ml-2 text-amber-400">· {live} en juego</span>}
+        </span>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-500/5">
+              <th className="text-left px-4 py-2.5 font-extrabold uppercase tracking-wider text-gray-400 w-6">#</th>
+              <th className="text-left px-2 py-2.5 font-extrabold uppercase tracking-wider text-gray-400">Equipo</th>
+              <th className="text-center px-2 py-2.5 font-extrabold uppercase tracking-wider text-gray-400">PJ</th>
+              <th className="text-center px-2 py-2.5 font-extrabold uppercase tracking-wider text-green-500">G</th>
+              <th className="text-center px-2 py-2.5 font-extrabold uppercase tracking-wider text-amber-400">E</th>
+              <th className="text-center px-2 py-2.5 font-extrabold uppercase tracking-wider text-red-400">P</th>
+              <th className="text-center px-2 py-2.5 font-extrabold uppercase tracking-wider text-gray-400">GF</th>
+              <th className="text-center px-2 py-2.5 font-extrabold uppercase tracking-wider text-gray-400">GC</th>
+              <th className="text-center px-2 py-2.5 font-extrabold uppercase tracking-wider text-gray-400">DG</th>
+              <th className="text-center px-3 py-2.5 font-extrabold uppercase tracking-wider text-sya-orange">PTS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stats.map((s, i) => {
+              const dg = s.gf - s.gc;
+              const qualifies = i < 2;
+              const possible3rd = i === 2;
+
+              const posColors = ['bg-green-500', 'bg-green-500', 'bg-amber-400', 'bg-gray-400'];
+              const posBg = posColors[Math.min(i, 3)];
+
+              return (
+                <tr
+                  key={s.team}
+                  className={`border-b border-gray-100 dark:border-gray-800/60 last:border-0 transition-colors hover:bg-gray-500/5 ${
+                    qualifies ? 'border-l-2 border-l-green-500' : possible3rd ? 'border-l-2 border-l-amber-400' : ''
+                  }`}
+                >
+                  {/* Position */}
+                  <td className="pl-4 py-3">
+                    <span className={`w-5 h-5 rounded-full ${posBg} text-white flex items-center justify-center font-black text-[10px]`}>
+                      {i + 1}
+                    </span>
+                  </td>
+                  {/* Team */}
+                  <td className="px-2 py-3 font-bold text-sm">{s.team}</td>
+                  {/* PJ */}
+                  <td className="px-2 py-3 text-center text-gray-400 font-semibold">{s.pj}</td>
+                  {/* G */}
+                  <td className="px-2 py-3 text-center font-extrabold text-green-500">{s.g}</td>
+                  {/* E */}
+                  <td className="px-2 py-3 text-center font-extrabold text-amber-400">{s.e}</td>
+                  {/* P */}
+                  <td className="px-2 py-3 text-center font-extrabold text-red-400">{s.p}</td>
+                  {/* GF */}
+                  <td className="px-2 py-3 text-center text-gray-400 font-semibold">{s.gf}</td>
+                  {/* GC */}
+                  <td className="px-2 py-3 text-center text-gray-400 font-semibold">{s.gc}</td>
+                  {/* DG */}
+                  <td className={`px-2 py-3 text-center font-extrabold ${dg > 0 ? 'text-green-500' : dg < 0 ? 'text-red-400' : 'text-gray-400'}`}>
+                    {dg > 0 ? `+${dg}` : dg}
+                  </td>
+                  {/* PTS */}
+                  <td className="px-3 py-3 text-center font-black text-base text-sya-orange">{s.pts}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Legend */}
+      <div className="px-4 py-3 flex items-center gap-4 text-[10px] font-semibold text-gray-400 border-t border-gray-200 dark:border-gray-800">
+        <span className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+          Clasifica directamente
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
+          Posible mejor 3°
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export default function GroupsPage() {
   const { user, profile } = useAuth();
@@ -36,6 +196,7 @@ export default function GroupsPage() {
   const [loading, setLoading] = useState(true);
   const [saveStates, setSaveStates] = useState<Record<number, 'idle' | 'saving' | 'saved' | 'error'>>({});
   const [savedMatchIds, setSavedMatchIds] = useState<Set<number>>(new Set());
+  const [selectedMatchForAudit, setSelectedMatchForAudit] = useState<Match | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -106,18 +267,15 @@ export default function GroupsPage() {
   }, [loading]);
 
   const handleNumericKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Allow control/navigation keys: backspace, delete, tab, escape, enter, arrows
     if ([
       'Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 
       'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'
     ].includes(e.key)) {
       return;
     }
-    // Allow clipboard/select shortcuts
     if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
       return;
     }
-    // Prevent keypress if not a digit
     if (!/^\d$/.test(e.key)) {
       e.preventDefault();
     }
@@ -191,7 +349,7 @@ export default function GroupsPage() {
   // Filter matches for the selected group
   const filteredMatches = matches.filter((m) => {
     const groupNameEn = selectedGroup.replace('Grupo', 'Group');
-    return m.groupName === selectedGroup || m.groupName === groupNameEn;
+    return (m.groupName === selectedGroup || m.groupName === groupNameEn) && m.status !== undefined && !['ROUND_32','ROUND_16','QUARTER','SEMI','THIRD_PLACE','FINAL'].includes((m as any).stage);
   });
 
   return (
@@ -203,7 +361,7 @@ export default function GroupsPage() {
           Fase de Grupos
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-          Seleccioná un grupo y cargá tus predicciones. Los partidos se bloquean automáticamente 15 minutos antes de comenzar.
+          Seguí los resultados de la Fase de Grupos. Los pronósticos de la Fase Eliminatoria se cargan en la sección Eliminatorias.
         </p>
       </div>
 
@@ -234,154 +392,175 @@ export default function GroupsPage() {
           No hay partidos importados en este grupo. Contactá al Administrador para importar el fixture.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredMatches.map((match) => {
-            const pred = predictions[match.id] || { predictedHomeScore: 0, predictedAwayScore: 0 };
-            const saveState = saveStates[match.id] || 'idle';
-            const isLocked = (new Date() >= new Date(new Date(match.matchDate).getTime() - 15 * 60000) || match.status !== 'SCHEDULED') && profile?.role !== 'ADMIN';
-            
-            return (
-              <div id={`match-${match.id}`} key={match.id} className="sya-glass p-6 flex flex-col justify-between relative overflow-hidden transition-all duration-1000 hover:shadow-md">
-                
-                {/* Side Lock bar */}
-                {isLocked && (
-                  <div className="absolute top-0 bottom-0 left-0 w-1 bg-red-500"></div>
-                )}
-
-                {/* Match Header */}
-                <div className="flex justify-between items-center text-xs font-bold text-gray-400 mb-4">
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-sya-orange" />
-                    <span>{formatMatchDate(match.matchDate)}</span>
-                  </div>
-                  {isLocked ? (
-                    <span className="flex items-center gap-1 px-2.5 py-1 rounded-full badge-locked text-[10px] uppercase font-bold">
-                      <Lock className="w-3 h-3" />
-                      Bloqueado
-                    </span>
-                  ) : (
-                    <span className="bg-green-500/10 text-green-500 px-2.5 py-1 rounded-full text-[10px] uppercase font-bold flex items-center gap-1">
-                      Abierto
-                    </span>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {filteredMatches.map((match) => {
+              const pred = predictions[match.id] || { predictedHomeScore: 0, predictedAwayScore: 0 };
+              const saveState = saveStates[match.id] || 'idle';
+              const isLocked = (new Date() >= new Date(new Date(match.matchDate).getTime() - 15 * 60000) || match.status !== 'SCHEDULED') && profile?.role !== 'ADMIN';
+              
+              return (
+                <div id={`match-${match.id}`} key={match.id} className="sya-glass p-6 flex flex-col justify-between relative overflow-hidden transition-all duration-1000 hover:shadow-md">
+                  
+                  {/* Side Lock bar */}
+                  {isLocked && (
+                    <div className="absolute top-0 bottom-0 left-0 w-1 bg-red-500"></div>
                   )}
-                </div>
 
-                {/* Main Score Prediction Layout */}
-                <div className="flex items-center justify-between gap-4 py-2">
-                  
-                  {/* Home Team */}
-                  <div className="flex-1 text-right font-extrabold text-sm sm:text-base pr-1 truncate">
-                    {match.homeTeam}
-                  </div>
-
-                  {/* Prediction Inputs */}
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      disabled={isLocked}
-                      value={pred.predictedHomeScore}
-                      onChange={(e) => handleScoreChange(match.id, 'home', e.target.value)}
-                      onKeyDown={handleNumericKeyDown}
-                      className={`w-14 h-14 text-center rounded-xl font-black text-2xl focus:outline-none focus:ring-2 focus:ring-sya-orange focus:border-transparent transition-all no-spinner ${
-                        isLocked
-                          ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed border-none'
-                          : 'bg-gray-500/5 border border-gray-200 dark:border-gray-800'
-                      }`}
-                    />
-                    <span className="text-gray-400 font-extrabold text-xs">vs</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      disabled={isLocked}
-                      value={pred.predictedAwayScore}
-                      onChange={(e) => handleScoreChange(match.id, 'away', e.target.value)}
-                      onKeyDown={handleNumericKeyDown}
-                      className={`w-14 h-14 text-center rounded-xl font-black text-2xl focus:outline-none focus:ring-2 focus:ring-sya-orange focus:border-transparent transition-all no-spinner ${
-                        isLocked
-                          ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed border-none'
-                          : 'bg-gray-500/5 border border-gray-200 dark:border-gray-800'
-                      }`}
-                    />
-                  </div>
-
-
-                  {/* Away Team */}
-                  <div className="flex-1 text-left font-extrabold text-sm sm:text-base pl-1 truncate">
-                    {match.awayTeam}
-                  </div>
-
-                </div>
-
-                {/* Footer details: Official Results or Save Action */}
-                <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
-                  
-                  {/* Official Result Display */}
-                  <div>
-                    {match.status === 'FINISHED' ? (
-                      <div className="text-xs">
-                        <span className="text-gray-400 block font-bold">Resultado Oficial</span>
-                        <span className="font-extrabold text-sya-blue text-sm">
-                          {match.homeScore} - {match.awayScore}
-                        </span>
-                      </div>
+                  {/* Match Header */}
+                  <div className="flex justify-between items-center text-xs font-bold text-gray-400 mb-4">
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-sya-orange" />
+                      <span>{formatMatchDate(match.matchDate)}</span>
+                    </div>
+                    {isLocked ? (
+                      <span className="flex items-center gap-1 px-2.5 py-1 rounded-full badge-locked text-[10px] uppercase font-bold">
+                        <Lock className="w-3 h-3" />
+                        Bloqueado
+                      </span>
                     ) : (
-                      <span className="text-xs text-gray-400 font-medium italic">Sin resultado aún</span>
-                    )}
-                  </div>
-
-                  {/* Prediction save button */}
-                  <div>
-                    {!isLocked ? (
-                      <button
-                        onClick={() => handleSavePrediction(match.id)}
-                        disabled={saveState === 'saving'}
-                        className={`px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all ${
-                          saveState === 'saved'
-                            ? 'bg-green-500 text-white'
-                            : saveState === 'error'
-                            ? 'bg-red-500 text-white'
-                            : savedMatchIds.has(match.id)
-                            ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                            : 'bg-sya-orange hover:bg-sya-orange-hover text-white'
-                        }`}
-                      >
-                        {saveState === 'saving' ? (
-                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        ) : saveState === 'saved' ? (
-                          <>
-                            <CheckCircle className="w-3.5 h-3.5" />
-                            <span>Guardado</span>
-                          </>
-                        ) : saveState === 'error' ? (
-                          <>
-                            <AlertCircle className="w-3.5 h-3.5" />
-                            <span>Reintentar</span>
-                          </>
-                        ) : (
-                          <>
-                            {savedMatchIds.has(match.id) ? <Edit2 className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-                            <span>{savedMatchIds.has(match.id) ? 'Editar' : 'Guardar'}</span>
-                          </>
-                        )}
-                      </button>
-                    ) : (
-                      <span className="text-xs text-gray-400 font-bold block bg-gray-500/10 px-3 py-1.5 rounded-lg">
-                        🔒 Pronóstico Cerrado
+                      <span className="bg-green-500/10 text-green-500 px-2.5 py-1 rounded-full text-[10px] uppercase font-bold flex items-center gap-1">
+                        Abierto
                       </span>
                     )}
                   </div>
 
-                </div>
+                  {/* Main Score Prediction Layout */}
+                  <div className="flex items-center justify-between gap-4 py-2">
+                    
+                    {/* Home Team */}
+                    <div className="flex-1 text-right font-extrabold text-sm sm:text-base pr-1 truncate">
+                      {match.homeTeam}
+                    </div>
 
-              </div>
-            );
-          })}
-        </div>
+                    {/* Prediction Inputs */}
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        disabled={isLocked}
+                        value={pred.predictedHomeScore}
+                        onChange={(e) => handleScoreChange(match.id, 'home', e.target.value)}
+                        onKeyDown={handleNumericKeyDown}
+                        className={`w-14 h-14 text-center rounded-xl font-black text-2xl focus:outline-none focus:ring-2 focus:ring-sya-orange focus:border-transparent transition-all no-spinner ${
+                          isLocked
+                            ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed border-none'
+                            : 'bg-gray-500/5 border border-gray-200 dark:border-gray-800'
+                        }`}
+                      />
+                      <span className="text-gray-400 font-extrabold text-xs">vs</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        disabled={isLocked}
+                        value={pred.predictedAwayScore}
+                        onChange={(e) => handleScoreChange(match.id, 'away', e.target.value)}
+                        onKeyDown={handleNumericKeyDown}
+                        className={`w-14 h-14 text-center rounded-xl font-black text-2xl focus:outline-none focus:ring-2 focus:ring-sya-orange focus:border-transparent transition-all no-spinner ${
+                          isLocked
+                            ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed border-none'
+                            : 'bg-gray-500/5 border border-gray-200 dark:border-gray-800'
+                        }`}
+                      />
+                    </div>
+
+
+                    {/* Away Team */}
+                    <div className="flex-1 text-left font-extrabold text-sm sm:text-base pl-1 truncate">
+                      {match.awayTeam}
+                    </div>
+
+                  </div>
+
+                  {/* Footer details: Official Results or Save Action */}
+                  <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                    
+                    {/* Official Result Display */}
+                    <div>
+                      {match.status === 'FINISHED' ? (
+                        <div className="text-xs">
+                          <span className="text-gray-400 block font-bold">Resultado Oficial</span>
+                          <span className="font-extrabold text-sya-blue text-sm">
+                            {match.homeScore} - {match.awayScore}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400 font-medium italic">Sin resultado aún</span>
+                      )}
+                    </div>
+
+                    {/* Prediction save button */}
+                    <div>
+                      {!isLocked ? (
+                        <button
+                          onClick={() => handleSavePrediction(match.id)}
+                          disabled={saveState === 'saving'}
+                          className={`px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all ${
+                            saveState === 'saved'
+                              ? 'bg-green-500 text-white'
+                              : saveState === 'error'
+                              ? 'bg-red-500 text-white'
+                              : savedMatchIds.has(match.id)
+                              ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                              : 'bg-sya-orange hover:bg-sya-orange-hover text-white'
+                          }`}
+                        >
+                          {saveState === 'saving' ? (
+                            <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          ) : saveState === 'saved' ? (
+                            <>
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              <span>Guardado</span>
+                            </>
+                          ) : saveState === 'error' ? (
+                            <>
+                              <AlertCircle className="w-3.5 h-3.5" />
+                              <span>Reintentar</span>
+                            </>
+                          ) : (
+                            <>
+                              {savedMatchIds.has(match.id) ? <Edit2 className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+                              <span>{savedMatchIds.has(match.id) ? 'Editar' : 'Guardar'}</span>
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setSelectedMatchForAudit(match)}
+                          className="px-3 py-1.5 bg-sya-orange/10 hover:bg-sya-orange/20 text-sya-orange font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Ver Prodes</span>
+                        </button>
+                      )}
+                    </div>
+
+                  </div>
+
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Group Standings Table */}
+          <GroupStandingsTable matches={filteredMatches} />
+        </>
       )}
 
+      {selectedMatchForAudit && (
+        <OtherPredictionsModal
+          isOpen={!!selectedMatchForAudit}
+          onClose={() => setSelectedMatchForAudit(null)}
+          matchId={selectedMatchForAudit.id}
+          homeTeam={selectedMatchForAudit.homeTeam}
+          awayTeam={selectedMatchForAudit.awayTeam}
+          matchDate={selectedMatchForAudit.matchDate}
+          homeScore={selectedMatchForAudit.homeScore}
+          awayScore={selectedMatchForAudit.awayScore}
+        />
+      )}
     </div>
   );
 }

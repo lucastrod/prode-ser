@@ -11,9 +11,11 @@ import {
   AlertTriangle,
   Award,
   Clock,
-  Edit2
+  Edit2,
+  Eye
 } from 'lucide-react';
 import Link from 'next/link';
+import OtherPredictionsModal from '@/components/OtherPredictionsModal';
 
 interface Match {
   id: number;
@@ -47,6 +49,7 @@ export default function PredictionsPage() {
   const [mergedList, setMergedList] = useState<MergedPrediction[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, points: 0, exacts: 0, outcomes: 0 });
+  const [selectedMatchForAudit, setSelectedMatchForAudit] = useState<Match | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -246,6 +249,7 @@ export default function PredictionsPage() {
                   <th className="px-6 py-4 text-center">Oficial</th>
                   <th className="px-6 py-4 text-center">Puntos</th>
                   <th className="px-6 py-4 text-center">Estado</th>
+                  <th className="px-6 py-4 text-center w-36">Comunidad</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
@@ -310,12 +314,40 @@ export default function PredictionsPage() {
                       {getStatusBadge(row.status)}
                     </td>
 
+                    {/* Community Predictions */}
+                    <td className="px-6 py-4 text-center">
+                      {row.status !== 'Pendiente' ? (
+                        <button
+                          onClick={() => setSelectedMatchForAudit(row.match)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sya-orange/10 hover:bg-sya-orange/20 text-sya-orange font-bold text-xs rounded-xl transition-all"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Ver Prodes</span>
+                        </button>
+                      ) : (
+                        <span className="text-[10px] text-gray-400 font-semibold italic">Cierra 15m antes</span>
+                      )}
+                    </td>
+
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </div>
+      )}
+
+      {selectedMatchForAudit && (
+        <OtherPredictionsModal
+          isOpen={!!selectedMatchForAudit}
+          onClose={() => setSelectedMatchForAudit(null)}
+          matchId={selectedMatchForAudit.id}
+          homeTeam={selectedMatchForAudit.homeTeam}
+          awayTeam={selectedMatchForAudit.awayTeam}
+          matchDate={selectedMatchForAudit.matchDate}
+          homeScore={selectedMatchForAudit.homeScore}
+          awayScore={selectedMatchForAudit.awayScore}
+        />
       )}
 
     </div>
