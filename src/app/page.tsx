@@ -249,7 +249,7 @@ export default function HomePage() {
             Mundial de Pronósticos PRODE SER
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xl font-medium">
-            ¡Demostrá tus conocimientos de fútbol y sumá puntos! ¿Te animás a liderar la tabla del grupo de jóvenes?
+            ¡Demostrá tus conocimientos de fútbol y sumá puntos! ¿Te animás a liderar la tabla de posiciones?
           </p>
         </div>
         <div className="flex gap-4 shrink-0 z-10">

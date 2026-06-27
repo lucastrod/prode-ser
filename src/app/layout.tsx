@@ -4,8 +4,8 @@ import AppShell from "@/components/AppShell";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PRODE SER 2026 | Grupo de Jóvenes",
-  description: "Plataforma de pronósticos del Mundial 2026 para el Grupo de Jóvenes SER.",
+  title: "PRODE SER 2026",
+  description: "Plataforma de pronósticos del Mundial 2026.",
 };
 
 export default function RootLayout({

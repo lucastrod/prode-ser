@@ -84,8 +84,8 @@ function LoginForm() {
           <h2 className="text-3xl font-extrabold font-serif bg-gradient-to-r from-[#1B199A] to-[#4b3be2] bg-clip-text text-transparent">
             PRODE SER
           </h2>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 font-medium">
-            Grupo de Jóvenes
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 font-semibold tracking-wider uppercase text-center">
+            Torneo de Pronósticos
           </p>
         </div>
 

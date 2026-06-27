@@ -287,43 +287,43 @@ export default function KnockoutPage() {
         <div className="flex flex-col items-center justify-center py-12 space-y-8">
           <div className="relative max-w-md w-full">
             {/* Glow */}
-            <div className="absolute -inset-4 rounded-3xl bg-sya-orange/20 blur-2xl pointer-events-none" />
-            <div className="relative sya-glass rounded-2xl p-10 text-center space-y-6 border border-sya-orange/30">
+            <div className="absolute -inset-4 rounded-3xl bg-amber-500/10 blur-2xl pointer-events-none" />
+            <div className="relative sya-glass rounded-2xl p-10 text-center space-y-6 border border-amber-500/30">
               {/* Icon */}
               <div className="flex justify-center">
-                <div className="w-20 h-20 rounded-full bg-sya-orange/10 border-2 border-sya-orange/30 flex items-center justify-center">
-                  <Lock className="w-9 h-9 text-sya-orange" />
+                <div className="w-20 h-20 rounded-full bg-amber-500/10 border-2 border-amber-500/30 flex items-center justify-center">
+                  <Lock className="w-9 h-9 text-amber-500" />
                 </div>
               </div>
               {/* Stars decoration */}
               <div className="flex justify-center gap-3">
-                <Star className="w-4 h-4 text-sya-orange/40" />
-                <Star className="w-5 h-5 text-sya-orange" />
-                <Star className="w-4 h-4 text-sya-orange/40" />
+                <Star className="w-4 h-4 text-amber-500/40" />
+                <Star className="w-5 h-5 text-amber-500" />
+                <Star className="w-4 h-4 text-amber-500/40" />
               </div>
               <div className="space-y-2">
                 <h2 className="text-3xl font-black font-serif tracking-tight">Próximamente</h2>
-                <p className="text-base font-extrabold text-sya-orange uppercase tracking-wider">Fase Eliminatoria</p>
+                <p className="text-base font-extrabold text-amber-500 uppercase tracking-wider">Fase Eliminatoria</p>
               </div>
               <p className="text-sm text-gray-400 dark:text-gray-400 font-medium leading-relaxed">
-                Las llaves de la Fase Eliminatoria se publicarán en cuanto todos los grupos queden definidos. ¡Ya casi!
+                Las llaves de la Fase Eliminatoria se publicarán en breve. ¡Prepará tus pronósticos!
               </p>
               {/* Progress bar */}
               <div className="space-y-2">
                 <div className="flex justify-between text-xs font-bold text-gray-400">
-                  <span>Grupos completados</span>
-                  <span className="text-sya-orange">{completedGroups} / {totalGroups}</span>
+                  <span>Procesando fixture</span>
+                  <span className="text-amber-500">Casi listo</span>
                 </div>
                 <div className="h-2 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-sya-orange to-amber-400 transition-all duration-700"
-                    style={{ width: `${totalGroups > 0 ? (completedGroups / totalGroups) * 100 : 0}%` }}
+                    className="h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 transition-all duration-700 animate-pulse"
+                    style={{ width: `85%` }}
                   />
                 </div>
               </div>
               <Link
                 href="/groups"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-sya-orange hover:bg-sya-orange-hover text-white font-bold text-sm transition-all shadow-lg shadow-sya-orange/20 hover:shadow-sya-orange/40 group"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1B199A] hover:bg-[#342ede] text-white font-bold text-sm transition-all shadow-lg shadow-[#1B199A]/20 hover:shadow-[#1B199A]/40 group cursor-pointer"
               >
                 <span>Ver Fase de Grupos</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

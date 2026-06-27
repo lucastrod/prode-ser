@@ -23,21 +23,21 @@
 /* System preference dark mode */
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    --background: #0B0F19;
+    --background: #030712;
     --foreground: #F9FAFB;
-    --card-bg: rgba(17, 24, 39, 0.85);
-    --border-color: rgba(100, 116, 139, 0.3);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --card-bg: rgba(17, 24, 39, 0.95);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
   }
 }
 
 /* Forced class-based dark mode */
 .dark {
-  --background: #0B0F19;
+  --background: #030712;
   --foreground: #F9FAFB;
-  --card-bg: rgba(17, 24, 39, 0.85);
-  --border-color: rgba(100, 116, 139, 0.3);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --card-bg: rgba(17, 24, 39, 0.95);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
 }
 
 /* Forced class-based light mode override */
