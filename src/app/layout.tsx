@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "PRODE SER 2026",
-  description: "Plataforma de pronósticos del Mundial 2026.",
+  description: "¡Sumate a pronosticar los partidos, sumá puntos y ganá premios!",
 };
 
 export default function RootLayout({
