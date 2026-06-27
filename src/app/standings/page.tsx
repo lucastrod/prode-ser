@@ -222,7 +222,7 @@ export default function StandingsPage() {
                       </td>
 
                       {/* Points */}
-                      <td className="px-6 py-4 text-center font-black text-2xl text-[#1B199A]">
+                      <td className="px-6 py-4 text-center font-black text-2xl text-[#1B199A] dark:text-white">
                         {row.totalPoints}
                       </td>
 
@@ -245,7 +245,7 @@ export default function StandingsPage() {
                             avatarUrl: (row.user as any).avatarUrl || null,
                             totalPoints: row.totalPoints
                           })}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sya-orange/10 hover:bg-sya-orange/20 text-sya-orange font-bold text-xs rounded-xl transition-all"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sya-orange/10 hover:bg-sya-orange/20 dark:bg-amber-500/10 dark:hover:bg-amber-500/20 text-sya-orange dark:text-amber-400 font-bold text-xs rounded-xl transition-all cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>Ver</span>

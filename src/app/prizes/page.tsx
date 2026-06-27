@@ -127,7 +127,7 @@ export default function PrizesPage() {
           </p>
           <ol className="list-decimal pl-4 space-y-1 mt-1 font-semibold">
             <li>Mayor cantidad de <strong>Aciertos Exactos</strong> (marcador idéntico, 6 puntos).</li>
-            <li>Mayor cantidad de <strong>Aciertos de Ganador/Diferencia o Empate</strong> (4 o 3 puntos).</li>
+            <li>Mayor cantidad de <strong>Aciertos de Ganador o Empate</strong> (3 puntos).</li>
             <li>Fecha y hora de registro de las predicciones (quien las haya guardado primero tendrá prioridad).</li>
           </ol>
         </div>
