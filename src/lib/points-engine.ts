@@ -3,8 +3,8 @@ import db from './db';
 /**
  * Calculates the points for a prediction based on the official score.
  * Rules:
- * - Exact Score = 3 points
- * - Correct winner/draw (Outcome) = 1 point
+ * - Exact Score = 6 points
+ * - Correct winner/draw (Outcome) = 3 points
  * - Incorrect = 0 points
  */
 export function calculatePoints(
@@ -21,17 +21,9 @@ export function calculatePoints(
   const predWinner = predHome > predAway ? 'home' : predHome < predAway ? 'away' : 'draw';
   const actualWinner = actualHome > actualAway ? 'home' : actualHome < actualAway ? 'away' : 'draw';
 
-  // Si acierta el ganador o el empate
+  // 3 Puntos: Acierta el ganador o el empate
   if (predWinner === actualWinner) {
-    // Si hay un ganador (no empate) y coincide la diferencia de goles
-    if (predWinner !== 'draw') {
-      const predDiff = predHome - predAway;
-      const actualDiff = actualHome - actualAway;
-      if (predDiff === actualDiff) {
-        return 4; // 4 Puntos: Ganador y diferencia exacta
-      }
-    }
-    return 3; // 3 Puntos: Ganador o empate sin diferencia exacta (incluye empates no exactos)
+    return 3;
   }
 
   return 0; // 0 Puntos: Predicción incorrecta
@@ -94,7 +86,7 @@ export async function recalculateStandings() {
       totalPoints += pred.points;
       if (pred.points === 6) {
         exactScores++;
-      } else if (pred.points === 4 || pred.points === 3) {
+      } else if (pred.points === 3) {
         correctOutcomes++;
       }
     }

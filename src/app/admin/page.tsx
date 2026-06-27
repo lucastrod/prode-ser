@@ -159,6 +159,32 @@ export default function AdminPage() {
     }
   };
 
+  const handleReimportGroups = async () => {
+    const confirmed = window.confirm(
+      '⚠️ Esto borrará todos los partidos de Fase de Grupos y los reimportará con los 6 partidos por grupo.\n\nLos pronósticos de Fase de Grupos existentes también se borrarán.\n\n¿Querés continuar?'
+    );
+    if (!confirmed) return;
+
+    setActionLoading(true);
+    try {
+      const res = await fetch('/api/admin/matches/reimport-groups', {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`✅ ${data.message}\n\nEliminados: ${data.deleted} partidos\nImportados: ${data.created} partidos`);
+        await loadData();
+      } else {
+        alert('❌ Error: ' + (data.error || 'desconocido'));
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error al reimportar los partidos de grupo.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleGenerateKnockout = async () => {
     setActionLoading(true);
     try {
@@ -497,6 +523,15 @@ export default function AdminPage() {
             >
               <ArrowDownToLine className="w-4 h-4" />
               Importar Fixture (Grupo)
+            </button>
+            <button
+              onClick={handleReimportGroups}
+              disabled={actionLoading}
+              className="py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50"
+              title="Borra los partidos de grupo existentes y reimporta todos los 6 por grupo"
+            >
+              <RefreshCw className={`w-4 h-4 ${actionLoading ? 'animate-spin' : ''}`} />
+              Reimportar Grupos (6 por grupo)
             </button>
             <button
               onClick={handleForceSync}

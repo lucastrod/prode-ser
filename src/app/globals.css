@@ -25,8 +25,8 @@
   :root:not(.light) {
     --background: #0B0F19;
     --foreground: #F9FAFB;
-    --card-bg: rgba(17, 24, 39, 0.8);
-    --border-color: rgba(75, 85, 99, 0.4);
+    --card-bg: rgba(17, 24, 39, 0.85);
+    --border-color: rgba(100, 116, 139, 0.3);
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   }
 }
@@ -35,8 +35,8 @@
 .dark {
   --background: #0B0F19;
   --foreground: #F9FAFB;
-  --card-bg: rgba(17, 24, 39, 0.8);
-  --border-color: rgba(75, 85, 99, 0.4);
+  --card-bg: rgba(17, 24, 39, 0.85);
+  --border-color: rgba(100, 116, 139, 0.3);
   --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 

@@ -79,7 +79,7 @@ export const dbClient = {
         matchesByGroup[gName].push(match);
       }
 
-      // Sort each group's matches chronologically and skip the first 2 matches
+      // Sort each group's matches chronologically — include ALL 6 matches
       const filteredGroupMatches: any[] = [];
       for (const gName in matchesByGroup) {
         const sorted = matchesByGroup[gName].sort((a, b) => {
@@ -87,7 +87,7 @@ export const dbClient = {
           const timeB = parseMatchDateTime(b.date, b.time).getTime();
           return timeA - timeB;
         });
-        filteredGroupMatches.push(...sorted.slice(2));
+        filteredGroupMatches.push(...sorted); // All 6 matches per group
       }
 
       // Knockout matches
@@ -125,7 +125,7 @@ export const dbClient = {
       });
 
       mockDb.writeMockDB(data);
-      return { count: data.matches.length, message: 'Successfully imported fixtures from Ronda 2 onwards' };
+      return { count: data.matches.length, message: 'Fixtures imported successfully (all 6 matches per group)' };
     } catch (error: any) {
       console.error('Error importing fixtures in mock mode:', error);
       throw new Error(`Failed to import fixtures: ${error.message}`);

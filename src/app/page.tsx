@@ -242,10 +242,10 @@ export default function HomePage() {
     <div className="space-y-8 pb-10">
       
       {/* Welcome Banner */}
-      <section className="sya-glass p-8 sya-card-accent relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2 z-10">
+      <section className="sya-glass p-5 sm:p-8 sya-card-accent relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
+        <div className="space-y-1 sm:space-y-2 z-10">
           <span className="text-xs uppercase font-extrabold tracking-wider text-[#1B199A]">Torneo PRODE SER</span>
-          <h1 className="text-3xl font-extrabold font-serif tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold font-serif tracking-tight">
             Mundial de Pronósticos PRODE SER
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xl font-medium">
@@ -253,7 +253,7 @@ export default function HomePage() {
           </p>
         </div>
         <div className="flex gap-4 shrink-0 z-10">
-          <Link href="/knockout" className="px-6 py-3 sya-button-primary text-sm shadow-md">
+          <Link href="/knockout" className="px-5 py-2.5 sm:px-6 sm:py-3 sya-button-primary text-sm shadow-md">
             Cargar Pronósticos
           </Link>
         </div>
@@ -264,25 +264,25 @@ export default function HomePage() {
         <h2 className="text-xl font-extrabold font-serif tracking-wide border-l-4 border-sya-orange pl-3">
           Accesos Rápidos
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
           {quickActions.map((action) => {
             const Icon = action.icon;
             return (
               <Link 
                 key={action.name} 
                 href={action.href}
-                className="sya-glass p-6 group hover:translate-y-[-4px] transition-all duration-300 relative overflow-hidden"
+                className="sya-glass p-4 sm:p-6 group hover:translate-y-[-4px] transition-all duration-300 relative overflow-hidden"
               >
-                <div className={`w-12 h-12 rounded-2xl ${action.color} flex items-center justify-center text-white mb-4 shadow-md group-hover:scale-110 transition-transform`}>
-                  <Icon className="w-6 h-6" />
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl ${action.color} flex items-center justify-center text-white mb-3 sm:mb-4 shadow-md group-hover:scale-110 transition-transform`}>
+                  <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
-                <h3 className="font-extrabold text-lg group-hover:text-sya-orange transition-colors">
+                <h3 className="font-extrabold text-sm sm:text-lg group-hover:text-sya-orange transition-colors leading-tight">
                   {action.name}
                 </h3>
-                <p className="text-xs text-gray-400 font-medium mt-1 mb-4">
+                <p className="text-xs text-gray-400 font-medium mt-1 mb-3 sm:mb-4 hidden sm:block">
                   {action.desc}
                 </p>
-                <div className="flex items-center text-xs font-bold text-sya-blue group-hover:text-sya-orange transition-colors">
+                <div className="flex items-center text-xs font-bold text-sya-blue group-hover:text-sya-orange transition-colors mt-2">
                   <span>Ir ahora</span>
                   <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -491,13 +491,9 @@ export default function HomePage() {
                   <span className="font-bold w-10 shrink-0">6 pts</span>
                   <span>Resultado Exacto (ej. predecís 2-1 y sale 2-1).</span>
                 </li>
-                <li className="flex items-start gap-2 text-blue-500">
-                  <span className="font-bold w-10 shrink-0">4 pts</span>
-                  <span>Acertar Ganador y Diferencia de goles exacta sin marcador exacto (ej. predecís 1-0 y sale 2-1).</span>
-                </li>
                 <li className="flex items-start gap-2 text-amber-500">
                   <span className="font-bold w-10 shrink-0">3 pts</span>
-                  <span>Acertar Ganador o Empate sin diferencia de goles exacta (ej. predecís 3-0 y sale 2-1, o empates como 1-1 vs 2-2).</span>
+                  <span>Acertar Ganador o Empate (ej. predecís 3-0 y sale 2-1, o empates como 1-1 vs 2-2).</span>
                 </li>
                 <li className="flex items-start gap-2 text-red-500">
                   <span className="font-bold w-10 shrink-0">0 pts</span>

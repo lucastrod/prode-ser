@@ -98,7 +98,7 @@ export async function importFixtures() {
       matchesByGroup[gName].push(match);
     }
 
-    // Sort each group's matches chronologically and skip the first 2 matches
+    // Sort each group's matches chronologically — include ALL 6 matches
     const filteredGroupMatches: any[] = [];
     for (const gName in matchesByGroup) {
       const sorted = matchesByGroup[gName].sort((a, b) => {
@@ -106,8 +106,7 @@ export async function importFixtures() {
         const timeB = parseMatchDateTime(b.date, b.time).getTime();
         return timeA - timeB;
       });
-      // Skip the first 2 matches of this group (Fecha 1)
-      filteredGroupMatches.push(...sorted.slice(2));
+      filteredGroupMatches.push(...sorted); // All 6 matches per group
     }
 
     // Knockout matches

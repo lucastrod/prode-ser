@@ -258,11 +258,11 @@ export default function KnockoutPage() {
   const totalGroups = CANONICAL_GROUPS.length;
   const allGroupsComplete = completedGroups >= totalGroups;
 
-  // Admins bypass the overlay
-  const showOverlay = !loading && !allGroupsComplete && profile?.role !== 'ADMIN';
-
   const hasAnyKnockoutMatches = matches.length > 0;
   const filteredMatches = matches.filter((m) => m.stage === activeStage);
+
+  // Show overlay only for non-admins when groups are not complete AND no knockout matches exist
+  const showOverlay = !loading && !allGroupsComplete && !hasAnyKnockoutMatches && profile?.role !== 'ADMIN';
 
   return (
     <div className="space-y-6 pb-12">
@@ -282,10 +282,53 @@ export default function KnockoutPage() {
           Cargando bracket eliminatorio...
         </div>
       ) : !hasAnyKnockoutMatches ? (
-        <div className="sya-glass p-16 text-center space-y-4">
-          <Trophy className="w-16 h-16 text-sya-orange/30 mx-auto" />
-          <p className="text-gray-400 font-semibold text-lg">La fase eliminatoria aún no comenzó.</p>
-          <p className="text-gray-500 text-sm">Los cruces se generarán al finalizar la Fase de Grupos el 27 de junio.</p>
+        /* Próximamente banner when no knockout matches are loaded yet */
+        <div className="flex flex-col items-center justify-center py-12 space-y-8">
+          <div className="relative max-w-md w-full">
+            {/* Glow */}
+            <div className="absolute -inset-4 rounded-3xl bg-sya-orange/20 blur-2xl pointer-events-none" />
+            <div className="relative sya-glass rounded-2xl p-10 text-center space-y-6 border border-sya-orange/30">
+              {/* Icon */}
+              <div className="flex justify-center">
+                <div className="w-20 h-20 rounded-full bg-sya-orange/10 border-2 border-sya-orange/30 flex items-center justify-center">
+                  <Lock className="w-9 h-9 text-sya-orange" />
+                </div>
+              </div>
+              {/* Stars decoration */}
+              <div className="flex justify-center gap-3">
+                <Star className="w-4 h-4 text-sya-orange/40" />
+                <Star className="w-5 h-5 text-sya-orange" />
+                <Star className="w-4 h-4 text-sya-orange/40" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-3xl font-black font-serif tracking-tight">Próximamente</h2>
+                <p className="text-base font-extrabold text-sya-orange uppercase tracking-wider">Fase Eliminatoria</p>
+              </div>
+              <p className="text-sm text-gray-400 dark:text-gray-400 font-medium leading-relaxed">
+                Las llaves de la Fase Eliminatoria se publicarán en cuanto todos los grupos queden definidos. ¡Ya casi!
+              </p>
+              {/* Progress bar */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-bold text-gray-400">
+                  <span>Grupos completados</span>
+                  <span className="text-sya-orange">{completedGroups} / {totalGroups}</span>
+                </div>
+                <div className="h-2 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-sya-orange to-amber-400 transition-all duration-700"
+                    style={{ width: `${totalGroups > 0 ? (completedGroups / totalGroups) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
+              <Link
+                href="/groups"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-sya-orange hover:bg-sya-orange-hover text-white font-bold text-sm transition-all shadow-lg shadow-sya-orange/20 hover:shadow-sya-orange/40 group"
+              >
+                <span>Ver Fase de Grupos</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+          </div>
         </div>
       ) : (
         <>

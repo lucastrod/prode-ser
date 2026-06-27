@@ -73,8 +73,11 @@ export default function RegisterPage() {
           <h2 className="text-3xl font-extrabold font-serif bg-gradient-to-r from-[#1B199A] to-[#4b3be2] bg-clip-text text-transparent">
             PRODE SER
           </h2>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 font-medium">
-            Crear cuenta de participantes
+          <p className="mt-2 text-base font-semibold text-gray-700 dark:text-gray-200">
+            ¡Sumate al Prode!
+          </p>
+          <p className="mt-1 text-sm text-gray-400 dark:text-gray-500 font-medium">
+            Creá tu cuenta y empezá a predecir
           </p>
         </div>
 
@@ -102,7 +105,7 @@ export default function RegisterPage() {
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="rounded-2xl space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">Nombre Completo</label>
+                <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">Tu nombre</label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
                     <User className="w-5 h-5" />
@@ -119,7 +122,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">Correo Electrónico</label>
+                <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">Tu correo</label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
                     <Mail className="w-5 h-5" />
@@ -130,13 +133,13 @@ export default function RegisterPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="block w-full pl-11 pr-4 py-3 bg-gray-500/5 border border-gray-200 dark:border-gray-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1B199A]/50 focus:border-[#1B199A] font-medium text-sm transition-all"
-                    placeholder="Ej. lucas@correo.com"
+                    placeholder="ejemplo@correo.com"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">Contraseña</label>
+                <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">Elegí una contraseña</label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
                     <Lock className="w-5 h-5" />
@@ -147,7 +150,7 @@ export default function RegisterPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="block w-full pl-11 pr-4 py-3 bg-gray-500/5 border border-gray-200 dark:border-gray-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1B199A]/50 focus:border-[#1B199A] font-medium text-sm transition-all"
-                    placeholder="••••••••"
+                    placeholder="Mín. 6 caracteres"
                   />
                 </div>
               </div>
@@ -162,15 +165,18 @@ export default function RegisterPage() {
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
-                  'Registrarse'
+                  <>
+                    <span>¡Quiero jugar!</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
                 )}
               </button>
             </div>
 
             <div className="text-center mt-4">
-              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">¿Ya tienes cuenta? </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">¿Ya tenés cuenta? </span>
               <Link href="/login" className="text-xs font-bold text-[#1B199A] hover:underline">
-                Inicia sesión aquí
+                Iniciá sesión acá
               </Link>
             </div>
           </form>

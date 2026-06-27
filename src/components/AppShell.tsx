@@ -164,10 +164,10 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200 group ${
                   active 
                     ? 'bg-[#1B199A] text-white shadow-md' 
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-[#1B199A]'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-[#1B199A] dark:hover:text-white'
                 }`}
               >
-                <Icon className={`w-5 h-5 transition-transform duration-200 group-hover:scale-110 ${active ? 'text-white' : 'text-gray-500'}`} />
+                <Icon className={`w-5 h-5 transition-transform duration-200 group-hover:scale-110 ${active ? 'text-white' : 'text-gray-400 dark:text-gray-400 group-hover:text-[#1B199A] dark:group-hover:text-white'}`} />
                 <span>{item.name}</span>
               </Link>
             );
@@ -181,7 +181,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200 group ${
                   pathname === adminNav.href 
                     ? 'bg-[#1B199A] text-white shadow-md' 
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-[#1B199A]'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-[#1B199A] dark:hover:text-white'
                 }`}
               >
                 <Settings className="w-5 h-5 text-gray-500 group-hover:spin" />
@@ -258,20 +258,20 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             </Link>
           </div>
 
-          {/* Leaderboard summaries & Theme Toggle */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 bg-gray-500/10 px-4 py-2 rounded-2xl">
+        {/* Leaderboard summaries & Theme Toggle */}
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 bg-gray-500/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl">
               <div className="text-center">
-                <span className="text-[10px] uppercase font-bold text-gray-400 block">Posición</span>
-                <span className="text-sm font-extrabold text-[#1B199A]">{userStats.rank}</span>
+                <span className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 block">Pos.</span>
+                <span className="text-xs sm:text-sm font-extrabold text-[#1B199A]">{userStats.rank}</span>
               </div>
-              <div className="h-8 w-px bg-gray-200 dark:bg-gray-800 text-gray-300"></div>
+              <div className="h-6 sm:h-8 w-px bg-gray-200 dark:bg-gray-800 text-gray-300"></div>
               <div className="text-center">
-                <span className="text-[10px] uppercase font-bold text-gray-400 block">Puntos</span>
-                <span className="text-sm font-extrabold text-blue-500">{userStats.points}</span>
+                <span className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 block">Pts</span>
+                <span className="text-xs sm:text-sm font-extrabold text-blue-500">{userStats.points}</span>
               </div>
-              <div className="h-8 w-px bg-gray-200 dark:bg-gray-800 text-gray-300"></div>
-              <div className="text-center">
+              <div className="h-6 sm:h-8 w-px bg-gray-200 dark:bg-gray-800 text-gray-300 hidden sm:block"></div>
+              <div className="text-center hidden sm:block">
                 <span className="text-[10px] uppercase font-bold text-gray-400 block">Exactos</span>
                 <span className="text-sm font-extrabold text-green-500">{userStats.exacts}</span>
               </div>
@@ -280,10 +280,10 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             {/* Dark Mode Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="p-2.5 rounded-2xl bg-gray-500/10 hover:bg-gray-500/20 text-[#1B199A] hover:text-[#342ede] transition-colors flex items-center justify-center shadow-sm cursor-pointer"
+              className="p-2 sm:p-2.5 rounded-2xl bg-gray-500/10 hover:bg-gray-500/20 text-[#1B199A] hover:text-[#342ede] transition-colors flex items-center justify-center shadow-sm cursor-pointer"
               title="Cambiar Tema"
             >
-              {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5 text-yellow-400" />}
+              {theme === 'light' ? <Moon className="w-4 h-4 sm:w-5 sm:h-5" /> : <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" />}
             </button>
           </div>
         </header>
@@ -311,7 +311,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                       className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-semibold transition-colors ${
                         active 
                           ? 'bg-[#1B199A] text-white shadow-md' 
-                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-[#1B199A]'
+                          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-[#1B199A] dark:hover:text-white'
                       }`}
                     >
                       <Icon className="w-5 h-5" />
@@ -327,7 +327,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                     className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-semibold transition-colors ${
                       pathname === adminNav.href 
                         ? 'bg-[#1B199A] text-white shadow-md' 
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-[#1B199A]'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-[#1B199A] dark:hover:text-white'
                     }`}
                   >
                     <Settings className="w-5 h-5" />
@@ -362,7 +362,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       </div>
 
       {/* Floating Bottom Navigation Bar for Mobile */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-[#111827] border-t border-gray-200 dark:border-gray-800 flex justify-around py-3 px-2 shadow-lg backdrop-blur-md bg-opacity-95">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-[#111827] border-t border-gray-200 dark:border-gray-700 flex justify-around py-2 px-1 shadow-lg backdrop-blur-md bg-opacity-95">
         {[
           ...navItems.slice(0, 5),
           ...(profile.role === 'ADMIN' ? [adminNav] : [])
@@ -373,12 +373,12 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             <Link
               key={item.name}
               href={item.href}
-              className={`flex flex-col items-center gap-1 text-[10px] font-bold transition-colors ${
-                active ? 'text-[#1B199A]' : 'text-gray-500 hover:text-[#1B199A]'
+              className={`flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl text-[9px] font-bold transition-all min-w-0 flex-1 ${
+                active ? 'text-[#1B199A] dark:text-white bg-[#1B199A]/10 dark:bg-[#1B199A]/20' : 'text-gray-400 dark:text-gray-500 hover:text-[#1B199A] dark:hover:text-gray-200'
               }`}
             >
               <Icon className={`w-5 h-5 ${active ? 'scale-110 stroke-[2.5px]' : 'scale-100'}`} />
-              <span>{item.name === 'Panel de Control' ? 'Admin' : item.name.split(' ')[0]}</span>
+              <span className="truncate w-full text-center leading-tight">{item.name === 'Panel de Control' ? 'Admin' : item.name === 'Tabla de Posiciones' ? 'Tabla' : item.name === 'Fase de Grupos' ? 'Grupos' : item.name === 'Eliminatorias' ? 'Elim.' : item.name === 'Mi Perfil' ? 'Perfil' : item.name.split(' ')[0]}</span>
             </Link>
           );
         })}

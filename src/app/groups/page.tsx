@@ -85,21 +85,22 @@ function computeStandings(matches: Match[]): TeamStat[] {
   });
 }
 
-function GroupStandingsTable({ matches }: { matches: Match[] }) {
+function GroupStandingsTable({ matches, groupName }: { matches: Match[]; groupName: string }) {
   const stats = computeStandings(matches);
-  // Show table when at least one match has official scores (FINISHED or LIVE with score)
+  // Show table when at least one match has official scores or is finished
   const withScores = matches.filter((m) => m.homeScore !== null && m.awayScore !== null);
   const finished = matches.filter((m) => m.status === 'FINISHED').length;
   const live = matches.filter((m) => m.status === 'LIVE' && m.homeScore !== null).length;
 
-  if (withScores.length === 0) return null;
+  // Show table if there are finished matches OR matches with scores
+  if (withScores.length === 0 && finished === 0) return null;
 
   return (
     <div className="sya-glass overflow-hidden mt-6">
       {/* Header */}
       <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center gap-2">
         <TrendingUp className="w-4 h-4 text-sya-orange" />
-        <span className="font-extrabold text-sm uppercase tracking-wider">Tabla del Grupo</span>
+        <span className="font-extrabold text-sm uppercase tracking-wider">Tabla del {groupName}</span>
         <span className="ml-auto text-[10px] text-gray-400 font-semibold">
           {finished}/{matches.length} partidos jugados
           {live > 0 && <span className="ml-2 text-amber-400">· {live} en juego</span>}
@@ -395,148 +396,85 @@ export default function GroupsPage() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredMatches.map((match) => {
-              const pred = predictions[match.id] || { predictedHomeScore: 0, predictedAwayScore: 0 };
-              const saveState = saveStates[match.id] || 'idle';
-              const isLocked = (new Date() >= new Date(new Date(match.matchDate).getTime() - 15 * 60000) || match.status !== 'SCHEDULED') && profile?.role !== 'ADMIN';
-              
+              const isFinished = match.status === 'FINISHED';
+              const isLive = match.status === 'LIVE';
+              const isToday = new Date(match.matchDate).toDateString() === new Date().toDateString();
+
               return (
-                <div id={`match-${match.id}`} key={match.id} className="sya-glass p-6 flex flex-col justify-between relative overflow-hidden transition-all duration-1000 hover:shadow-md">
-                  
-                  {/* Side Lock bar */}
-                  {isLocked && (
-                    <div className="absolute top-0 bottom-0 left-0 w-1 bg-red-500"></div>
-                  )}
+                <div key={match.id} className="sya-glass p-4 sm:p-5 flex flex-col gap-3 relative overflow-hidden">
+
+                  {/* Status bar on left */}
+                  <div className={`absolute top-0 bottom-0 left-0 w-1 ${
+                    isFinished ? 'bg-emerald-500' : isLive ? 'bg-amber-400' : 'bg-gray-300 dark:bg-gray-700'
+                  }`} />
 
                   {/* Match Header */}
-                  <div className="flex justify-between items-center text-xs font-bold text-gray-400 mb-4">
+                  <div className="flex justify-between items-center text-xs font-bold text-gray-400">
                     <div className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5 text-sya-orange" />
                       <span>{formatMatchDate(match.matchDate)}</span>
                     </div>
-                    {isLocked ? (
-                      <span className="flex items-center gap-1 px-2.5 py-1 rounded-full badge-locked text-[10px] uppercase font-bold">
-                        <Lock className="w-3 h-3" />
-                        Bloqueado
+                    {isFinished ? (
+                      <span className="bg-emerald-500/10 text-emerald-500 px-2.5 py-1 rounded-full text-[10px] uppercase font-bold flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" /> Finalizado
+                      </span>
+                    ) : isLive ? (
+                      <span className="bg-amber-500/10 text-amber-500 px-2.5 py-1 rounded-full text-[10px] uppercase font-bold animate-pulse">
+                        🔴 En Juego
                       </span>
                     ) : (
-                      <span className="bg-green-500/10 text-green-500 px-2.5 py-1 rounded-full text-[10px] uppercase font-bold flex items-center gap-1">
-                        Abierto
+                      <span className="bg-gray-500/10 text-gray-400 px-2.5 py-1 rounded-full text-[10px] uppercase font-bold">
+                        Programado
                       </span>
                     )}
                   </div>
 
-                  {/* Main Score Prediction Layout */}
-                  <div className="flex items-center justify-between gap-4 py-2">
-                    
-                    {/* Home Team */}
-                    <div className="flex-1 text-right font-extrabold text-sm sm:text-base pr-1 truncate">
+                  {/* Teams + Score display */}
+                  <div className="flex items-center justify-between gap-2 py-1">
+                    {/* Home */}
+                    <div className={`flex-1 text-right font-extrabold text-sm sm:text-base truncate ${
+                      isFinished && match.homeScore! > match.awayScore! ? 'text-emerald-500' : ''
+                    }`}>
                       {match.homeTeam}
                     </div>
 
-                    {/* Prediction Inputs */}
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        disabled={isLocked}
-                        value={pred.predictedHomeScore}
-                        onChange={(e) => handleScoreChange(match.id, 'home', e.target.value)}
-                        onKeyDown={handleNumericKeyDown}
-                        className={`w-14 h-14 text-center rounded-xl font-black text-2xl focus:outline-none focus:ring-2 focus:ring-sya-orange focus:border-transparent transition-all no-spinner ${
-                          isLocked
-                            ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed border-none'
-                            : 'bg-gray-500/5 border border-gray-200 dark:border-gray-800'
-                        }`}
-                      />
-                      <span className="text-gray-400 font-extrabold text-xs">vs</span>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        disabled={isLocked}
-                        value={pred.predictedAwayScore}
-                        onChange={(e) => handleScoreChange(match.id, 'away', e.target.value)}
-                        onKeyDown={handleNumericKeyDown}
-                        className={`w-14 h-14 text-center rounded-xl font-black text-2xl focus:outline-none focus:ring-2 focus:ring-sya-orange focus:border-transparent transition-all no-spinner ${
-                          isLocked
-                            ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed border-none'
-                            : 'bg-gray-500/5 border border-gray-200 dark:border-gray-800'
-                        }`}
-                      />
+                    {/* Score or dash */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isFinished || isLive ? (
+                        <>
+                          <span className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 font-black text-xl sm:text-2xl">
+                            {match.homeScore}
+                          </span>
+                          <span className="text-gray-300 font-black text-sm">-</span>
+                          <span className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 font-black text-xl sm:text-2xl">
+                            {match.awayScore}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-gray-400 font-bold text-sm px-3">vs</span>
+                      )}
                     </div>
 
-
-                    {/* Away Team */}
-                    <div className="flex-1 text-left font-extrabold text-sm sm:text-base pl-1 truncate">
+                    {/* Away */}
+                    <div className={`flex-1 text-left font-extrabold text-sm sm:text-base truncate ${
+                      isFinished && match.awayScore! > match.homeScore! ? 'text-emerald-500' : ''
+                    }`}>
                       {match.awayTeam}
                     </div>
-
                   </div>
 
-                  {/* Footer details: Official Results or Save Action */}
-                  <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
-                    
-                    {/* Official Result Display */}
-                    <div>
-                      {match.status === 'FINISHED' ? (
-                        <div className="text-xs">
-                          <span className="text-gray-400 block font-bold">Resultado Oficial</span>
-                          <span className="font-extrabold text-sya-blue text-sm">
-                            {match.homeScore} - {match.awayScore}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-gray-400 font-medium italic">Sin resultado aún</span>
-                      )}
-                    </div>
-
-                    {/* Prediction save button */}
-                    <div>
-                      {!isLocked ? (
-                        <button
-                          onClick={() => handleSavePrediction(match.id)}
-                          disabled={saveState === 'saving'}
-                          className={`px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all ${
-                            saveState === 'saved'
-                              ? 'bg-green-500 text-white'
-                              : saveState === 'error'
-                              ? 'bg-red-500 text-white'
-                              : savedMatchIds.has(match.id)
-                              ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                              : 'bg-sya-orange hover:bg-sya-orange-hover text-white'
-                          }`}
-                        >
-                          {saveState === 'saving' ? (
-                            <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          ) : saveState === 'saved' ? (
-                            <>
-                              <CheckCircle className="w-3.5 h-3.5" />
-                              <span>Guardado</span>
-                            </>
-                          ) : saveState === 'error' ? (
-                            <>
-                              <AlertCircle className="w-3.5 h-3.5" />
-                              <span>Reintentar</span>
-                            </>
-                          ) : (
-                            <>
-                              {savedMatchIds.has(match.id) ? <Edit2 className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-                              <span>{savedMatchIds.has(match.id) ? 'Editar' : 'Guardar'}</span>
-                            </>
-                          )}
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => setSelectedMatchForAudit(match)}
-                          className="px-3 py-1.5 bg-sya-orange/10 hover:bg-sya-orange/20 text-sya-orange font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>Predicciones</span>
-                        </button>
-                      )}
-                    </div>
-
+                  {/* Footer */}
+                  <div className="pt-2 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                    <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
+                      {isFinished ? 'Resultado final' : isLive ? 'Parcial' : 'Sin resultado aún'}
+                    </span>
+                    <button
+                      onClick={() => setSelectedMatchForAudit(match)}
+                      className="px-3 py-1 bg-sya-orange/10 hover:bg-sya-orange/20 text-sya-orange font-bold text-[10px] rounded-lg flex items-center gap-1 transition-all"
+                    >
+                      <Eye className="w-3 h-3" />
+                      Ver predicciones
+                    </button>
                   </div>
 
                 </div>
@@ -545,7 +483,7 @@ export default function GroupsPage() {
           </div>
 
           {/* Group Standings Table */}
-          <GroupStandingsTable matches={filteredMatches} />
+          <GroupStandingsTable matches={filteredMatches} groupName={selectedGroup} />
         </>
       )}
 
