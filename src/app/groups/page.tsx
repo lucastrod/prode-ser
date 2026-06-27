@@ -375,7 +375,7 @@ export default function GroupsPage() {
             className={`px-5 py-2.5 rounded-full text-xs font-bold shrink-0 transition-all ${
               selectedGroup === group
                 ? 'bg-sya-orange text-white shadow-md'
-                : 'bg-white dark:bg-[#111827] text-gray-500 hover:text-sya-orange border border-gray-200 dark:border-gray-800'
+                : 'bg-white dark:bg-[#111827] text-gray-600 dark:text-gray-300 hover:text-sya-orange dark:hover:text-white border border-gray-200 dark:border-gray-700'
             }`}
           >
             {group}

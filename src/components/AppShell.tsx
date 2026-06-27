@@ -374,7 +374,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               key={item.name}
               href={item.href}
               className={`flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl text-[9px] font-bold transition-all min-w-0 flex-1 ${
-                active ? 'text-[#1B199A] dark:text-white bg-[#1B199A]/10 dark:bg-[#1B199A]/20' : 'text-gray-400 dark:text-gray-500 hover:text-[#1B199A] dark:hover:text-gray-200'
+                active 
+                  ? 'text-[#1B199A] dark:text-white bg-[#1B199A]/10 dark:bg-[#1B199A]/20 border border-[#1B199A]/20 dark:border-white/20' 
+                  : 'text-gray-400 dark:text-gray-400 hover:text-[#1B199A] dark:hover:text-white'
               }`}
             >
               <Icon className={`w-5 h-5 ${active ? 'scale-110 stroke-[2.5px]' : 'scale-100'}`} />

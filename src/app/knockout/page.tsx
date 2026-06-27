@@ -258,7 +258,8 @@ export default function KnockoutPage() {
   const totalGroups = CANONICAL_GROUPS.length;
   const allGroupsComplete = completedGroups >= totalGroups;
 
-  const hasAnyKnockoutMatches = matches.length > 0;
+  const showKnockouts = process.env.NEXT_PUBLIC_SHOW_KNOCKOUTS === 'true';
+  const hasAnyKnockoutMatches = matches.length > 0 && showKnockouts;
   const filteredMatches = matches.filter((m) => m.stage === activeStage);
 
   // Show overlay only for non-admins when groups are not complete AND no knockout matches exist
@@ -341,7 +342,7 @@ export default function KnockoutPage() {
                 className={`px-5 py-2.5 rounded-full font-bold text-xs shrink-0 transition-all duration-200 ${
                   activeStage === stage
                     ? 'bg-sya-orange text-white shadow-md shadow-sya-orange/30'
-                    : 'bg-white dark:bg-[#111827] text-gray-500 hover:text-sya-orange border border-gray-200 dark:border-gray-800'
+                    : 'bg-white dark:bg-[#111827] text-gray-600 dark:text-gray-300 hover:text-sya-orange dark:hover:text-white border border-gray-200 dark:border-gray-700'
                 }`}
               >
                 {STAGE_LABELS[stage] || stage}

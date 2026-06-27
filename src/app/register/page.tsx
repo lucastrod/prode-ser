@@ -45,11 +45,9 @@ export default function RegisterPage() {
       if (!res.ok) {
         setError(data.error || 'Ocurrió un error al registrarse.');
       } else {
-        setSuccess(data.message || 'Registro exitoso. Revisa tu correo electrónico.');
-        // Clean fields
-        setName('');
-        setEmail('');
-        setPassword('');
+        setSuccess('¡Registro exitoso! Redirigiendo...');
+        // Auto redirect to home since cookie is already configured
+        window.location.href = '/';
       }
     } catch (err: any) {
       setError('Error al intentar registrar. Inténtalo más tarde.');
@@ -160,13 +158,13 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 bg-[#1B199A] text-white font-bold rounded-full shadow-lg hover:bg-[#342ede] transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-[#1B199A] text-white font-bold rounded-full shadow-lg hover:bg-[#342ede] transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
                   <>
-                    <span>¡Quiero jugar!</span>
+                    <span>Registrarse</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}

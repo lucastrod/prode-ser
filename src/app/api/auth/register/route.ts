@@ -38,9 +38,13 @@ export async function POST(req: NextRequest) {
       verificationToken,
     });
 
+    // Automatically create session for the new user
+    const { createSession } = require('@/lib/session');
+    await createSession(userId);
+
     return NextResponse.json({
       success: true,
-      message: '¡Registro exitoso! Ya podés iniciar sesión con tu cuenta.'
+      message: '¡Registro exitoso!'
     });
   } catch (error: any) {
     console.error('Registration API error:', error);
