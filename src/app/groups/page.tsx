@@ -468,13 +468,6 @@ export default function GroupsPage() {
                     <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
                       {isFinished ? 'Resultado final' : isLive ? 'Parcial' : 'Sin resultado aún'}
                     </span>
-                    <button
-                      onClick={() => setSelectedMatchForAudit(match)}
-                      className="px-3 py-1 bg-sya-orange/10 hover:bg-sya-orange/20 text-sya-orange font-bold text-[10px] rounded-lg flex items-center gap-1 transition-all"
-                    >
-                      <Eye className="w-3 h-3" />
-                      Ver predicciones
-                    </button>
                   </div>
 
                 </div>
@@ -485,19 +478,6 @@ export default function GroupsPage() {
           {/* Group Standings Table */}
           <GroupStandingsTable matches={filteredMatches} groupName={selectedGroup} />
         </>
-      )}
-
-      {selectedMatchForAudit && (
-        <OtherPredictionsModal
-          isOpen={!!selectedMatchForAudit}
-          onClose={() => setSelectedMatchForAudit(null)}
-          matchId={selectedMatchForAudit.id}
-          homeTeam={selectedMatchForAudit.homeTeam}
-          awayTeam={selectedMatchForAudit.awayTeam}
-          matchDate={selectedMatchForAudit.matchDate}
-          homeScore={selectedMatchForAudit.homeScore}
-          awayScore={selectedMatchForAudit.awayScore}
-        />
       )}
     </div>
   );

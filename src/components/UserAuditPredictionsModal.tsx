@@ -120,10 +120,10 @@ export default function UserAuditPredictionsModal({
               )}
             </div>
             <div>
-              <h3 className="font-extrabold text-sm text-sya-orange uppercase tracking-widest">Auditoría de Prodes</h3>
+              <h3 className="font-extrabold text-xs text-amber-500 uppercase tracking-widest">Pronósticos</h3>
               <p className="font-black text-lg text-gray-800 dark:text-white flex items-center gap-2">
                 {userName}
-                <span className="text-xs bg-sya-orange/10 text-sya-orange px-2.5 py-0.5 rounded-full">
+                <span className="text-xs bg-amber-500/10 text-amber-500 dark:text-amber-400 px-2.5 py-0.5 rounded-full font-bold">
                   {totalPoints} Puntos Totales
                 </span>
               </p>

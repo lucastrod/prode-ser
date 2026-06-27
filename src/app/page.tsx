@@ -230,11 +230,11 @@ export default function HomePage() {
       color: 'bg-emerald-500',
     },
     { 
-      name: 'Premios del Prode', 
+      name: 'Premios', 
       desc: 'Conocé los premios para los ganadores', 
       href: '/prizes', 
       icon: Gift,
-      color: 'bg-indigo-500',
+      color: 'bg-purple-500',
     },
   ];
 
