@@ -507,6 +507,20 @@ export default function AdminPage() {
     // 2. Stage / Group Filter
     if (filterStage === 'ALL') return true;
     if (filterStage === 'GROUP_ALL') return m.groupName.startsWith('Grupo') || m.groupName.startsWith('Group');
+    
+    const stageMap: Record<string, string> = {
+      'Round of 32': 'ROUND_32',
+      'Round of 16': 'ROUND_16',
+      'Cuartos de Final': 'QUARTER',
+      'Semifinales': 'SEMI',
+      '3er Puesto': 'THIRD_PLACE',
+      'Gran Final': 'FINAL',
+    };
+    const mappedStage = stageMap[filterStage];
+    if (mappedStage) {
+      return (m as any).stage === mappedStage;
+    }
+    
     return m.groupName === filterStage || m.groupName === filterStage.replace('Grupo', 'Group') || m.groupName === filterStage.replace('Group', 'Grupo');
   });
 
