@@ -89,18 +89,18 @@ export default function UserAuditPredictionsModal({
 
   const getPointsBadge = (points: number | null) => {
     if (points === null) return <span className="text-gray-400 font-bold">-</span>;
-    if (points === 3) {
+    if (points === 6) {
       return (
         <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded bg-green-500 text-white text-[10px] font-black uppercase shadow-sm">
           <Award className="w-3 h-3" />
-          +3 Pts
+          +6 Pts
         </span>
       );
     }
-    if (points === 1) {
+    if (points === 3) {
       return (
         <span className="inline-flex px-2 py-0.5 rounded bg-sya-blue text-white text-[10px] font-black uppercase shadow-sm">
-          +1 Pt
+          +3 Pts
         </span>
       );
     }

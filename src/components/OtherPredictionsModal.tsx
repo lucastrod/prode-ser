@@ -206,10 +206,10 @@ export default function OtherPredictionsModal({
                         {/* Points badge */}
                         {hasPoints && (
                           <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[10px] font-black uppercase text-white shadow-sm ${
-                            p.points === 3 ? 'bg-green-500 animate-pulse' : p.points === 1 ? 'bg-sya-blue' : 'bg-gray-400'
+                            p.points === 6 ? 'bg-green-500 animate-pulse' : p.points === 3 ? 'bg-sya-blue' : 'bg-gray-400'
                           }`}>
-                            {p.points === 3 && <Award className="w-3 h-3" />}
-                            {p.points === 3 ? '+3' : p.points === 1 ? '+1' : '0'} Pts
+                            {p.points === 6 && <Award className="w-3 h-3" />}
+                            {p.points === 6 ? '+6' : p.points === 3 ? '+3' : '0'} Pts
                           </span>
                         )}
                       </div>
