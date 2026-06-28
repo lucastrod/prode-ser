@@ -258,7 +258,7 @@ export default function KnockoutPage() {
   const totalGroups = CANONICAL_GROUPS.length;
   const allGroupsComplete = completedGroups >= totalGroups;
 
-  const showKnockouts = process.env.NEXT_PUBLIC_SHOW_KNOCKOUTS === 'true';
+  const showKnockouts = process.env.NEXT_PUBLIC_SHOW_KNOCKOUTS !== 'false';
   const hasAnyKnockoutMatches = matches.length > 0 && showKnockouts;
   const filteredMatches = matches.filter((m) => m.stage === activeStage);
 
