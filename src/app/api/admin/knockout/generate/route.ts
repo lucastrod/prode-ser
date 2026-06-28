@@ -75,15 +75,15 @@ function buildGroupStandings(matches: any[]): GroupStanding[] {
 // Fallback qualifiers — used when group stage is not yet finished in DB
 const FALLBACK_QUALIFIERS: Record<string, string> = {
   "1A": "México",                     "2A": "Sudáfrica",
-  "1B": "Argentina",                  "2B": "Canadá",
+  "1B": "Suiza",                      "2B": "Canadá",
   "1C": "Brasil",                     "2C": "Marruecos",
   "1D": "Estados Unidos",             "2D": "Australia",
   "1E": "Alemania",                   "2E": "Costa de Marfil",
   "1F": "Países Bajos",               "2F": "Japón",
   "1G": "Bélgica",                    "2G": "Egipto",
-  "1H": "España",                     "2H": "Argelia",
+  "1H": "España",                     "2H": "Cabo Verde",
   "1I": "Francia",                    "2I": "Noruega",
-  "1J": "Suiza",                      "2J": "Austria",
+  "1J": "Argentina",                  "2J": "Austria",
   "1K": "Colombia",                   "2K": "Portugal",
   "1L": "Inglaterra",                 "2L": "Croacia",
   "3A/B/C/D/F": "Paraguay",
@@ -92,7 +92,7 @@ const FALLBACK_QUALIFIERS: Record<string, string> = {
   "3E/H/I/J/K": "República Democrática del Congo",
   "3B/E/F/I/J": "Bosnia y Herzegovina",
   "3A/E/H/I/J": "Senegal",
-  "3E/F/G/I/J": "Cabo Verde",
+  "3E/F/G/I/J": "Argelia",
   "3D/E/I/J/L": "Ghana",
 };
 
