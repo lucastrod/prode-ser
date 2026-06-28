@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Swords, Trophy, Clock, CheckCircle, Lock, Star, ArrowRight, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { getFlagEmoji } from '@/app/page';
 import OtherPredictionsModal from '@/components/OtherPredictionsModal';
 
 interface KnockoutMatch {
@@ -99,10 +100,11 @@ function MatchCard({ match, onShowPredictions }: { match: KnockoutMatch; onShowP
           <div className={`flex items-center justify-between gap-2 ${
             isFinished && !homeWins ? 'opacity-50' : ''
           }`}>
-            <span className={`font-bold text-sm truncate flex-1 ${
+            <span className={`font-bold text-sm truncate flex-1 flex items-center gap-1.5 ${
               homeWins ? 'text-sya-orange' : ''
             } ${isPlaceholder ? 'text-gray-400 italic text-xs' : ''}`}>
-              {match.homeTeam.replace(/^\[|\]$/g, '')}
+              {!isPlaceholder && <span className="text-base shrink-0">{getFlagEmoji(match.homeTeam)}</span>}
+              <span className="truncate">{match.homeTeam.replace(/^\[|\]$/g, '')}</span>
             </span>
             {isFinished && (
               <span className={`text-lg font-black w-7 text-center ${homeWins ? 'text-sya-orange' : 'text-gray-400'}`}>
@@ -128,10 +130,11 @@ function MatchCard({ match, onShowPredictions }: { match: KnockoutMatch; onShowP
           <div className={`flex items-center justify-between gap-2 ${
             isFinished && !awayWins ? 'opacity-50' : ''
           }`}>
-            <span className={`font-bold text-sm truncate flex-1 ${
+            <span className={`font-bold text-sm truncate flex-1 flex items-center gap-1.5 ${
               awayWins ? 'text-sya-orange' : ''
             } ${isPlaceholder ? 'text-gray-400 italic text-xs' : ''}`}>
-              {match.awayTeam.replace(/^\[|\]$/g, '')}
+              {!isPlaceholder && <span className="text-base shrink-0">{getFlagEmoji(match.awayTeam)}</span>}
+              <span className="truncate">{match.awayTeam.replace(/^\[|\]$/g, '')}</span>
             </span>
             {isFinished && (
               <span className={`text-lg font-black w-7 text-center ${awayWins ? 'text-sya-orange' : 'text-gray-400'}`}>

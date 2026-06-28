@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Clock, Lock, Save, CheckCircle, AlertCircle, Edit2, TrendingUp, Eye } from 'lucide-react';
 import OtherPredictionsModal from '@/components/OtherPredictionsModal';
+import { getFlagEmoji } from '@/app/page';
 
 interface Match {
   id: number;
@@ -432,10 +433,11 @@ export default function GroupsPage() {
                   {/* Teams + Score display */}
                   <div className="flex items-center justify-between gap-2 py-1">
                     {/* Home */}
-                    <div className={`flex-1 text-right font-extrabold text-sm sm:text-base truncate ${
+                    <div className={`flex-1 text-right font-extrabold text-sm sm:text-base truncate flex items-center justify-end gap-1.5 min-w-0 ${
                       isFinished && match.homeScore! > match.awayScore! ? 'text-emerald-500' : ''
                     }`}>
-                      {match.homeTeam}
+                      <span className="text-base sm:text-lg shrink-0" title={match.homeTeam}>{getFlagEmoji(match.homeTeam)}</span>
+                      <span className="truncate" title={match.homeTeam}>{match.homeTeam}</span>
                     </div>
 
                     {/* Score or dash */}
@@ -456,10 +458,11 @@ export default function GroupsPage() {
                     </div>
 
                     {/* Away */}
-                    <div className={`flex-1 text-left font-extrabold text-sm sm:text-base truncate ${
+                    <div className={`flex-1 text-left font-extrabold text-sm sm:text-base truncate flex items-center justify-start gap-1.5 min-w-0 ${
                       isFinished && match.awayScore! > match.homeScore! ? 'text-emerald-500' : ''
                     }`}>
-                      {match.awayTeam}
+                      <span className="text-base sm:text-lg shrink-0" title={match.awayTeam}>{getFlagEmoji(match.awayTeam)}</span>
+                      <span className="truncate" title={match.awayTeam}>{match.awayTeam}</span>
                     </div>
                   </div>
 

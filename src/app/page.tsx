@@ -18,6 +18,71 @@ import {
   Star,
   Lock,
 } from 'lucide-react';
+const FLAG_MAP: Record<string, string> = {
+  "Alemania": "🇩🇪",
+  "Argelia": "🇩🇿",
+  "Argentina": "🇦🇷",
+  "Arabia Saudita": "🇸🇦",
+  "Australia": "🇦🇺",
+  "Austria": "🇦🇹",
+  "Bélgica": "🇧🇪",
+  "Bosnia y Herzegovina": "🇧🇦",
+  "Brasil": "🇧🇷",
+  "Canadá": "🇨🇦",
+  "Cabo Verde": "🇨🇻",
+  "Colombia": "🇨🇴",
+  "Corea del Sur": "🇰🇷",
+  "Costa de Marfil": "🇨🇮",
+  "Croacia": "🇭🇷",
+  "Curazao": "🇨🇼",
+  "Ecuador": "🇪🇨",
+  "Egipto": "🇪🇬",
+  "España": "🇪🇸",
+  "Estados Unidos": "🇺🇸",
+  "Francia": "🇫🇷",
+  "Ghana": "🇬🇭",
+  "Haití": "🇭🇹",
+  "Inglaterra": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+  "Irak": "🇮🇶",
+  "Irán": "🇮🇷",
+  "Japón": "🇯🇵",
+  "Jordania": "🇯🇴",
+  "Marruecos": "🇲🇦",
+  "México": "🇲🇽",
+  "Noruega": "🇳🇴",
+  "Nueva Zelanda": "🇳🇿",
+  "Países Bajos": "🇳🇱",
+  "Panamá": "🇵🇦",
+  "Paraguay": "🇵🇾",
+  "Portugal": "🇵🇹",
+  "Qatar": "🇶🇦",
+  "República Checa": "🇨🇿",
+  "República Democrática del Congo": "🇨🇩",
+  "Escocia": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  "Senegal": "🇸🇳",
+  "Sudáfrica": "🇿🇦",
+  "Suecia": "🇸🇪",
+  "Suiza": "🇨🇭",
+  "Túnez": "🇹🇳",
+  "Turquía": "🇹🇷",
+  "Uruguay": "🇺🇾",
+  "Uzbekistán": "🇺🇿",
+};
+
+export function getFlagEmoji(teamName: string): string {
+  if (!teamName) return "";
+  const cleanName = teamName.replace(/^\[|\]$/g, '').trim();
+  if (FLAG_MAP[cleanName]) return FLAG_MAP[cleanName];
+  
+  // Try case insensitive or substring
+  for (const [key, val] of Object.entries(FLAG_MAP)) {
+    if (cleanName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(cleanName.toLowerCase())) {
+      return val;
+    }
+  }
+  return "";
+}
+
 
 interface Match {
   id: number;
@@ -373,61 +438,66 @@ export default function HomePage() {
                       </div>
 
                       {/* Score Input Fields Grid */}
-                      <div className="flex items-center justify-between gap-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                         
-                        {/* Home Team */}
-                        <div className="flex-1 text-right font-bold text-sm sm:text-base pr-2 truncate">
-                          {match.homeTeam}
-                        </div>
-
-                        {/* Inputs Row — only for knockout matches */}
-                        {isKnockout ? (
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              pattern="[0-9]*"
-                              value={pred.predictedHomeScore}
-                              onChange={(e) => handleScoreChange(match.id, 'home', e.target.value)}
-                              onKeyDown={handleNumericKeyDown}
-                              className="w-14 h-14 text-center bg-gray-500/5 border border-gray-200 dark:border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-sya-orange focus:border-transparent font-black text-2xl no-spinner"
-                            />
-                            <span className="text-gray-400 font-extrabold text-xs">vs</span>
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              pattern="[0-9]*"
-                              value={pred.predictedAwayScore}
-                              onChange={(e) => handleScoreChange(match.id, 'away', e.target.value)}
-                              onKeyDown={handleNumericKeyDown}
-                              className="w-14 h-14 text-center bg-gray-500/5 border border-gray-200 dark:border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-sya-orange focus:border-transparent font-black text-2xl no-spinner"
-                            />
+                        {/* Teams & Inputs Row */}
+                        <div className="flex-1 flex items-center justify-between gap-2 sm:gap-4">
+                          {/* Home Team */}
+                          <div className="flex-1 text-right font-bold text-sm sm:text-base pr-1 sm:pr-2 min-w-0 flex items-center justify-end gap-1.5">
+                            <span className="text-base sm:text-lg shrink-0" title={match.homeTeam}>{getFlagEmoji(match.homeTeam)}</span>
+                            <span className="truncate" title={match.homeTeam}>{match.homeTeam}</span>
                           </div>
-                        ) : (
-                          /* Group stage: read-only display */
-                          <div className="flex items-center gap-2">
-                            <div className="w-14 h-14 text-center bg-gray-100 dark:bg-gray-800/50 rounded-xl font-black text-2xl flex items-center justify-center text-gray-300 dark:text-gray-600">
-                              -
-                            </div>
-                            <span className="text-gray-400 font-extrabold text-xs">vs</span>
-                            <div className="w-14 h-14 text-center bg-gray-100 dark:bg-gray-800/50 rounded-xl font-black text-2xl flex items-center justify-center text-gray-300 dark:text-gray-600">
-                              -
-                            </div>
-                          </div>
-                        )}
 
-                        {/* Away Team */}
-                        <div className="flex-1 text-left font-bold text-sm sm:text-base pl-2 truncate">
-                          {match.awayTeam}
+                          {/* Inputs Row — only for knockout matches */}
+                          {isKnockout ? (
+                            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                value={pred.predictedHomeScore}
+                                onChange={(e) => handleScoreChange(match.id, 'home', e.target.value)}
+                                onKeyDown={handleNumericKeyDown}
+                                className="w-11 h-11 sm:w-14 sm:h-14 text-center bg-gray-500/5 border border-gray-200 dark:border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-sya-orange focus:border-transparent font-black text-xl sm:text-2xl no-spinner"
+                              />
+                              <span className="text-gray-400 font-extrabold text-[10px] sm:text-xs">vs</span>
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                value={pred.predictedAwayScore}
+                                onChange={(e) => handleScoreChange(match.id, 'away', e.target.value)}
+                                onKeyDown={handleNumericKeyDown}
+                                className="w-11 h-11 sm:w-14 sm:h-14 text-center bg-gray-500/5 border border-gray-200 dark:border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-sya-orange focus:border-transparent font-black text-xl sm:text-2xl no-spinner"
+                              />
+                            </div>
+                          ) : (
+                            /* Group stage: read-only display */
+                            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                              <div className="w-11 h-11 sm:w-14 sm:h-14 text-center bg-gray-100 dark:bg-gray-800/50 rounded-xl font-black text-xl sm:text-2xl flex items-center justify-center text-gray-300 dark:text-gray-600">
+                                -
+                              </div>
+                              <span className="text-gray-400 font-extrabold text-[10px] sm:text-xs">vs</span>
+                              <div className="w-11 h-11 sm:w-14 sm:h-14 text-center bg-gray-100 dark:bg-gray-800/50 rounded-xl font-black text-xl sm:text-2xl flex items-center justify-center text-gray-300 dark:text-gray-600">
+                                -
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Away Team */}
+                          <div className="flex-1 text-left font-bold text-sm sm:text-base pl-1 sm:pl-2 min-w-0 flex items-center justify-start gap-1.5">
+                            <span className="text-base sm:text-lg shrink-0" title={match.awayTeam}>{getFlagEmoji(match.awayTeam)}</span>
+                            <span className="truncate" title={match.awayTeam}>{match.awayTeam}</span>
+                          </div>
                         </div>
 
                         {/* Action Button — only for knockout */}
-                        <div className="w-28 flex justify-end shrink-0">
+                        <div className="w-full sm:w-28 flex justify-center sm:justify-end shrink-0 mt-1 sm:mt-0">
                           {isKnockout ? (
                             <button
                               onClick={() => handleSavePrediction(match.id)}
                               disabled={saveState === 'saving'}
-                              className={`w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                              className={`w-full sm:w-auto py-2 px-4 sm:py-2.5 sm:px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
                                 saveState === 'saved'
                                   ? 'bg-green-500 text-white'
                                   : saveState === 'error'
@@ -457,7 +527,7 @@ export default function HomePage() {
                               )}
                             </button>
                           ) : (
-                            <span className="text-[10px] text-gray-400 font-bold text-center leading-tight">
+                            <span className="text-[10px] text-gray-400 font-bold text-center leading-tight w-full sm:w-auto">
                               Solo vista
                             </span>
                           )}
