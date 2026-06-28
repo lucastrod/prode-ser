@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, TrendingUp, Award, CheckCircle } from 'lucide-react';
 
 interface PredictionItem {
@@ -40,6 +41,11 @@ export default function OtherPredictionsModal({
   const [predictions, setPredictions] = useState<PredictionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ home: 0, draw: 0, away: 0 });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -86,9 +92,9 @@ export default function OtherPredictionsModal({
     fetchPredictions();
   }, [isOpen, matchId]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', background: 'rgba(0,0,0,0.5)' }}>
       <div className="relative max-w-lg w-full bg-white dark:bg-[#111827] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 flex flex-col max-h-[85vh] overflow-hidden animate-slide-up">
         
@@ -217,6 +223,7 @@ export default function OtherPredictionsModal({
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

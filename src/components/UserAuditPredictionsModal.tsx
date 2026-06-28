@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Award, CheckCircle2, ShieldAlert } from 'lucide-react';
 
 interface Match {
@@ -42,6 +43,11 @@ export default function UserAuditPredictionsModal({
 }: UserAuditPredictionsModalProps) {
   const [predictions, setPredictions] = useState<PredictionItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -69,7 +75,7 @@ export default function UserAuditPredictionsModal({
     fetchUserPredictions();
   }, [isOpen, userId]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const formatMatchDate = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -105,7 +111,7 @@ export default function UserAuditPredictionsModal({
     );
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', background: 'rgba(0,0,0,0.5)' }}>
       <div className="relative max-w-xl w-full bg-white dark:bg-[#111827] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 flex flex-col max-h-[85vh] overflow-hidden animate-slide-up">
         
@@ -120,10 +126,10 @@ export default function UserAuditPredictionsModal({
               )}
             </div>
             <div>
-              <h3 className="font-extrabold text-xs text-amber-500 uppercase tracking-widest">Pronósticos</h3>
+              <h3 className="font-extrabold text-sm text-sya-orange uppercase tracking-widest">Auditoría de Prodes</h3>
               <p className="font-black text-lg text-gray-800 dark:text-white flex items-center gap-2">
                 {userName}
-                <span className="text-xs bg-amber-500/10 text-amber-500 dark:text-amber-400 px-2.5 py-0.5 rounded-full font-bold">
+                <span className="text-xs bg-sya-orange/10 text-sya-orange px-2.5 py-0.5 rounded-full">
                   {totalPoints} Puntos Totales
                 </span>
               </p>
@@ -194,7 +200,7 @@ export default function UserAuditPredictionsModal({
                         {/* Pronosticado */}
                         <div className="text-right">
                           <span className="text-[9px] uppercase font-bold text-gray-400 block">Prode</span>
-                          <span className="px-2 py-0.5 bg-gray-500/20 rounded font-black text-xs text-gray-800 dark:text-gray-200">
+                          <span className="px-2 py-0.5 bg-gray-500/10 rounded font-black text-xs text-gray-800 dark:text-gray-200">
                             {p.predictedHomeScore} - {p.predictedAwayScore}
                           </span>
                         </div>
@@ -222,6 +228,7 @@ export default function UserAuditPredictionsModal({
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

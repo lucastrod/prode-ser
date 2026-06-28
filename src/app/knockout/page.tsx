@@ -1,11 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Swords, Trophy, Clock, CheckCircle, Lock, Star, ArrowRight, Eye } from 'lucide-react';
-import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
-import { getFlagEmoji } from '@/app/page';
+import { Swords, Trophy, Clock, CheckCircle, Eye, Save, Edit2, AlertCircle } from 'lucide-react';
 import OtherPredictionsModal from '@/components/OtherPredictionsModal';
+import { useAuth } from '@/context/AuthContext';
 
 interface KnockoutMatch {
   id: number;
@@ -20,11 +18,10 @@ interface KnockoutMatch {
   penaltyWinner: string | null;
 }
 
-interface GroupMatch {
-  id: number;
-  groupName: string;
-  stage?: string;
-  status: 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'CANCELLED';
+interface Prediction {
+  matchId: number;
+  predictedHomeScore: number | '';
+  predictedAwayScore: number | '';
 }
 
 const STAGE_LABELS: Record<string, string> = {
@@ -36,26 +33,98 @@ const STAGE_LABELS: Record<string, string> = {
   FINAL: 'Gran Final',
 };
 
+const FLAG_MAP: Record<string, string> = {
+  "Alemania": "🇩🇪",
+  "Argelia": "🇩🇿",
+  "Argentina": "🇦🇷",
+  "Arabia Saudita": "🇸🇦",
+  "Australia": "🇦🇺",
+  "Austria": "🇦🇹",
+  "Bélgica": "🇧🇪",
+  "Bosnia y Herzegovina": "🇧🇦",
+  "Brasil": "🇧🇷",
+  "Canadá": "🇨🇦",
+  "Cabo Verde": "🇨🇻",
+  "Colombia": "🇨🇴",
+  "Corea del Sur": "🇰🇷",
+  "Costa de Marfil": "🇨🇮",
+  "Croacia": "🇭🇷",
+  "Curazao": "🇨🇼",
+  "Ecuador": "🇪🇨",
+  "Egipto": "🇪🇬",
+  "España": "🇪🇸",
+  "Estados Unidos": "🇺🇸",
+  "Francia": "🇫🇷",
+  "Ghana": "🇬🇭",
+  "Haití": "🇭🇹",
+  "Inglaterra": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+  "Irak": "🇮🇶",
+  "Irán": "🇮🇷",
+  "Japón": "🇯🇵",
+  "Jordania": "🇯🇴",
+  "Marruecos": "🇲🇦",
+  "México": "🇲🇽",
+  "Noruega": "🇳🇴",
+  "Nueva Zelanda": "🇳🇿",
+  "Países Bajos": "🇳🇱",
+  "Panamá": "🇵🇦",
+  "Paraguay": "🇵🇾",
+  "Portugal": "🇵🇹",
+  "Qatar": "🇶🇦",
+  "República Checa": "🇨🇿",
+  "RD Congo": "🇨🇩",
+  "República Democrática del Congo": "🇨🇩",
+  "Escocia": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  "Senegal": "🇸🇳",
+  "Sudáfrica": "🇿🇦",
+  "Suecia": "🇸🇪",
+  "Suiza": "🇨🇭",
+  "Túnez": "🇹🇳",
+  "Turquía": "🇹🇷",
+  "Uruguay": "🇺🇾",
+  "Uzbekistán": "🇺🇿",
+};
+
+export function getFlagEmoji(teamName: string): string {
+  if (!teamName) return "";
+  const cleanName = teamName.replace(/^\[|\]$/g, '').trim();
+  if (FLAG_MAP[cleanName]) return FLAG_MAP[cleanName];
+  
+  for (const [key, val] of Object.entries(FLAG_MAP)) {
+    if (cleanName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(cleanName.toLowerCase())) {
+      return val;
+    }
+  }
+  return "";
+}
+
 const STAGE_ORDER = ['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', 'THIRD_PLACE', 'FINAL'];
 
-const ALL_GROUPS = [
-  'Group A', 'Group B', 'Group C', 'Group D', 'Group E', 'Group F',
-  'Group G', 'Group H', 'Group I', 'Group J', 'Group K', 'Group L',
-  'Grupo A', 'Grupo B', 'Grupo C', 'Grupo D', 'Grupo E', 'Grupo F',
-  'Grupo G', 'Grupo H', 'Grupo I', 'Grupo J', 'Grupo K', 'Grupo L',
-];
-
-// Deduplicated canonical group list (A-L)
-const CANONICAL_GROUPS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
-
-function MatchCard({ match, onShowPredictions }: { match: KnockoutMatch; onShowPredictions?: (m: KnockoutMatch) => void }) {
+function MatchCard({
+  match,
+  prediction,
+  saveState,
+  savedMatchIds,
+  onShowPredictions,
+  onScoreChange,
+  onSave,
+}: {
+  match: KnockoutMatch;
+  prediction?: Prediction;
+  saveState?: 'idle' | 'saving' | 'saved' | 'error';
+  savedMatchIds?: Set<number>;
+  onShowPredictions?: (m: KnockoutMatch) => void;
+  onScoreChange?: (matchId: number, team: 'home' | 'away', val: string) => void;
+  onSave?: (matchId: number) => void;
+}) {
   const isFinished = match.status === 'FINISHED';
   const isLive = match.status === 'LIVE';
-  const isPlaceholder = match.homeTeam.startsWith('[') || match.awayTeam.startsWith('[') || match.homeTeam.startsWith('W') || match.awayTeam.startsWith('W') || match.homeTeam.startsWith('L') || match.awayTeam.startsWith('L');
+  const isPlaceholder = match.homeTeam.startsWith('[') || match.awayTeam.startsWith('[');
 
   const matchDate = new Date(match.matchDate);
   const now = new Date();
   const isLocked = now >= new Date(matchDate.getTime() - 15 * 60000) || match.status === 'LIVE' || match.status === 'FINISHED';
+  const canPredict = match.stage === 'ROUND_32' && !isLocked && !isPlaceholder;
 
   const getWinner = (side: 'home' | 'away') => {
     if (!isFinished || match.homeScore === null || match.awayScore === null) return false;
@@ -75,6 +144,19 @@ function MatchCard({ match, onShowPredictions }: { match: KnockoutMatch; onShowP
       minute: '2-digit',
     });
   };
+
+  const handleNumericKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if ([
+      'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+      'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'
+    ].includes(e.key)) return;
+    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) return;
+    if (!/^\d$/.test(e.key)) e.preventDefault();
+  };
+
+  const pred = prediction || { predictedHomeScore: '', predictedAwayScore: '' };
+  const state = saveState || 'idle';
+  const alreadySaved = savedMatchIds?.has(match.id) || false;
 
   return (
     <div className={`sya-glass overflow-hidden transition-all duration-300 hover:translate-y-[-2px] flex flex-col justify-between ${
@@ -100,12 +182,14 @@ function MatchCard({ match, onShowPredictions }: { match: KnockoutMatch; onShowP
           <div className={`flex items-center justify-between gap-2 ${
             isFinished && !homeWins ? 'opacity-50' : ''
           }`}>
-            <span className={`font-bold text-sm truncate flex-1 flex items-center gap-1.5 ${
-              homeWins ? 'text-sya-orange' : ''
-            } ${isPlaceholder ? 'text-gray-400 italic text-xs' : ''}`}>
-              {!isPlaceholder && <span className="text-base shrink-0">{getFlagEmoji(match.homeTeam)}</span>}
-              <span className="truncate">{match.homeTeam.replace(/^\[|\]$/g, '')}</span>
-            </span>
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <span className="text-base sm:text-lg shrink-0" title={match.homeTeam.replace(/^\[|\]$/g, '')}>{getFlagEmoji(match.homeTeam)}</span>
+              <span className={`font-bold text-sm truncate ${
+                homeWins ? 'text-sya-orange' : ''
+              } ${isPlaceholder && match.homeTeam.startsWith('[') ? 'text-gray-400 italic text-xs' : ''}`}>
+                {match.homeTeam.replace(/^\[|\]$/g, '')}
+              </span>
+            </div>
             {isFinished && (
               <span className={`text-lg font-black w-7 text-center ${homeWins ? 'text-sya-orange' : 'text-gray-400'}`}>
                 {match.homeScore}
@@ -130,12 +214,14 @@ function MatchCard({ match, onShowPredictions }: { match: KnockoutMatch; onShowP
           <div className={`flex items-center justify-between gap-2 ${
             isFinished && !awayWins ? 'opacity-50' : ''
           }`}>
-            <span className={`font-bold text-sm truncate flex-1 flex items-center gap-1.5 ${
-              awayWins ? 'text-sya-orange' : ''
-            } ${isPlaceholder ? 'text-gray-400 italic text-xs' : ''}`}>
-              {!isPlaceholder && <span className="text-base shrink-0">{getFlagEmoji(match.awayTeam)}</span>}
-              <span className="truncate">{match.awayTeam.replace(/^\[|\]$/g, '')}</span>
-            </span>
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <span className="text-base sm:text-lg shrink-0" title={match.awayTeam.replace(/^\[|\]$/g, '')}>{getFlagEmoji(match.awayTeam)}</span>
+              <span className={`font-bold text-sm truncate ${
+                awayWins ? 'text-sya-orange' : ''
+              } ${isPlaceholder && match.awayTeam.startsWith('[') ? 'text-gray-400 italic text-xs' : ''}`}>
+                {match.awayTeam.replace(/^\[|\]$/g, '')}
+              </span>
+            </div>
             {isFinished && (
               <span className={`text-lg font-black w-7 text-center ${awayWins ? 'text-sya-orange' : 'text-gray-400'}`}>
                 {match.awayScore}
@@ -144,6 +230,66 @@ function MatchCard({ match, onShowPredictions }: { match: KnockoutMatch; onShowP
             {awayWins && <span className="text-[9px] bg-sya-orange text-white px-1.5 py-0.5 rounded-full font-black">✓</span>}
           </div>
         </div>
+
+        {/* Prediction input zone — ROUND_32 only, not yet locked */}
+        {canPredict && onScoreChange && onSave && (
+          <div className="px-4 pb-3 border-t border-gray-200 dark:border-gray-800 pt-3">
+            <p className="text-[10px] text-gray-400 font-bold uppercase mb-2">Tu pronóstico</p>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="-"
+                value={pred.predictedHomeScore}
+                onChange={(e) => onScoreChange(match.id, 'home', e.target.value)}
+                onKeyDown={handleNumericKeyDown}
+                className="w-12 h-10 text-center bg-gray-500/5 border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-sya-orange font-black text-xl no-spinner"
+              />
+              <span className="text-gray-400 font-extrabold text-xs">-</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="-"
+                value={pred.predictedAwayScore}
+                onChange={(e) => onScoreChange(match.id, 'away', e.target.value)}
+                onKeyDown={handleNumericKeyDown}
+                className="w-12 h-10 text-center bg-gray-500/5 border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-sya-orange font-black text-xl no-spinner"
+              />
+              <button
+                onClick={() => onSave(match.id)}
+                disabled={state === 'saving'}
+                className={`flex-1 py-2 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                  state === 'saved'
+                    ? 'bg-green-500 text-white'
+                    : state === 'error'
+                    ? 'bg-red-500 text-white'
+                    : alreadySaved
+                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                    : 'bg-sya-orange hover:bg-sya-orange-hover text-white'
+                }`}
+              >
+                {state === 'saving' ? (
+                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : state === 'saved' ? (
+                  <><CheckCircle className="w-3 h-3" /><span>Guardado</span></>
+                ) : state === 'error' ? (
+                  <><AlertCircle className="w-3 h-3" /><span>Error</span></>
+                ) : (
+                  <>{alreadySaved ? <Edit2 className="w-3 h-3" /> : <Save className="w-3 h-3" />}<span>{alreadySaved ? 'Editar' : 'Predecir'}</span></>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Locked prediction display */}
+        {!canPredict && !isFinished && !isLive && !isPlaceholder && match.stage === 'ROUND_32' && (
+          <div className="px-4 pb-3 border-t border-gray-200 dark:border-gray-800 pt-3">
+            <p className="text-[10px] text-amber-400 font-bold uppercase">🔒 Pronóstico bloqueado</p>
+          </div>
+        )}
       </div>
 
       {isLocked && !isPlaceholder && onShowPredictions && (
@@ -159,114 +305,103 @@ function MatchCard({ match, onShowPredictions }: { match: KnockoutMatch; onShowP
   );
 }
 
-// ─── "Coming Soon" overlay when group stage is not complete ──────────────────
-function ComingSoonOverlay({ groupsCompleted, totalGroups }: { groupsCompleted: number; totalGroups: number }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', background: 'rgba(0,0,0,0.55)' }}>
-      <div className="relative max-w-md w-full">
-        {/* Glow */}
-        <div className="absolute -inset-4 rounded-3xl bg-sya-orange/20 blur-2xl pointer-events-none" />
-
-        <div className="relative sya-glass rounded-2xl p-10 text-center space-y-6 border border-sya-orange/30">
-          {/* Icon */}
-          <div className="flex justify-center">
-            <div className="w-20 h-20 rounded-full bg-sya-orange/10 border-2 border-sya-orange/30 flex items-center justify-center">
-              <Lock className="w-9 h-9 text-sya-orange" />
-            </div>
-          </div>
-
-          {/* Stars decoration */}
-          <div className="flex justify-center gap-3">
-            <Star className="w-4 h-4 text-sya-orange/40" />
-            <Star className="w-5 h-5 text-sya-orange" />
-            <Star className="w-4 h-4 text-sya-orange/40" />
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="text-3xl font-black font-serif tracking-tight">Próximamente</h2>
-            <p className="text-base font-extrabold text-sya-orange uppercase tracking-wider">Fase Eliminatoria</p>
-          </div>
-
-          <p className="text-sm text-gray-400 font-medium leading-relaxed">
-            Esta sección se habilitará para predicciones una vez que todos los grupos de la Fase de Grupos queden formados y los cruces estén definidos.
-          </p>
-
-          {/* Progress bar */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs font-bold text-gray-400">
-              <span>Grupos completados</span>
-              <span className="text-sya-orange">{groupsCompleted} / {totalGroups}</span>
-            </div>
-            <div className="h-2 rounded-full bg-gray-800 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-sya-orange to-amber-400 transition-all duration-700"
-                style={{ width: `${totalGroups > 0 ? (groupsCompleted / totalGroups) * 100 : 0}%` }}
-              />
-            </div>
-          </div>
-
-          {/* CTA */}
-          <Link
-            href="/groups"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-sya-orange hover:bg-sya-orange-hover text-white font-bold text-sm transition-all shadow-lg shadow-sya-orange/20 hover:shadow-sya-orange/40 group"
-          >
-            <span>Ver Fase de Grupos</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function KnockoutPage() {
-  const { profile } = useAuth();
+  const { user } = useAuth();
   const [matches, setMatches] = useState<KnockoutMatch[]>([]);
-  const [allMatches, setAllMatches] = useState<GroupMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeStage, setActiveStage] = useState<string>('ROUND_32');
   const [selectedMatchForAudit, setSelectedMatchForAudit] = useState<KnockoutMatch | null>(null);
 
+  const [predictions, setPredictions] = useState<Record<number, Prediction>>({});
+  const [saveStates, setSaveStates] = useState<Record<number, 'idle' | 'saving' | 'saved' | 'error'>>({});
+  const [savedMatchIds, setSavedMatchIds] = useState<Set<number>>(new Set());
+
   useEffect(() => {
-    fetch('/api/matches')
-      .then((r) => r.json())
-      .then((d) => {
-        const all: GroupMatch[] = d.matches || [];
-        setAllMatches(all);
+    const fetchAll = async () => {
+      try {
+        const matchesRes = await fetch('/api/matches');
+        const d = await matchesRes.json();
+        const all: KnockoutMatch[] = (d.matches || []).filter(
+          (m: KnockoutMatch) => m.stage !== 'GROUP'
+        );
+        setMatches(all);
 
-        const knockout: KnockoutMatch[] = all.filter(
-          (m: any) => m.stage && m.stage !== 'GROUP'
-        ) as KnockoutMatch[];
-        setMatches(knockout);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+        if (user) {
+          const predsRes = await fetch(`/api/predictions?userId=${user.id}`);
+          if (predsRes.ok) {
+            const predsData = await predsRes.json();
+            const predsMap: Record<number, Prediction> = {};
+            const savedIds = new Set<number>();
+            (predsData.predictions || []).forEach((p: any) => {
+              predsMap[p.matchId] = {
+                matchId: p.matchId,
+                predictedHomeScore: p.predictedHomeScore,
+                predictedAwayScore: p.predictedAwayScore,
+              };
+              savedIds.add(p.matchId);
+            });
+            setPredictions(predsMap);
+            setSavedMatchIds(savedIds);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Determine how many canonical groups have at least 3 finished matches (all 3 group games done)
-  const groupCompletionMap: Record<string, number> = {};
-  for (const m of allMatches) {
-    if (!m.groupName) continue;
-    if ((m as any).stage && (m as any).stage !== 'GROUP') continue;
-    // Normalize group name letter
-    const letter = m.groupName.replace(/^(Group|Grupo)\s+/i, '').toUpperCase();
-    if (!CANONICAL_GROUPS.includes(letter)) continue;
-    if (m.status === 'FINISHED') {
-      groupCompletionMap[letter] = (groupCompletionMap[letter] || 0) + 1;
+    fetchAll();
+  }, [user]);
+
+  const handleScoreChange = (matchId: number, team: 'home' | 'away', val: string) => {
+    const cleanVal = val.replace(/\D/g, '');
+    const scoreVal = cleanVal === '' ? '' : parseInt(cleanVal, 10);
+    setPredictions((prev) => ({
+      ...prev,
+      [matchId]: {
+        ...prev[matchId] || { matchId, predictedHomeScore: '', predictedAwayScore: '' },
+        [team === 'home' ? 'predictedHomeScore' : 'predictedAwayScore']: scoreVal,
+      },
+    }));
+    setSaveStates((prev) => ({ ...prev, [matchId]: 'idle' }));
+  };
+
+  const handleSavePrediction = async (matchId: number) => {
+    if (!user) return;
+    const pred = predictions[matchId] || { predictedHomeScore: 0, predictedAwayScore: 0 };
+    setSaveStates((prev) => ({ ...prev, [matchId]: 'saving' }));
+    try {
+      const res = await fetch('/api/predictions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          matchId,
+          predictedHomeScore: pred.predictedHomeScore === '' ? 0 : Number(pred.predictedHomeScore),
+          predictedAwayScore: pred.predictedAwayScore === '' ? 0 : Number(pred.predictedAwayScore),
+        }),
+      });
+      if (res.ok) {
+        setSaveStates((prev) => ({ ...prev, [matchId]: 'saved' }));
+        setSavedMatchIds((prev) => {
+          const next = new Set(prev);
+          next.add(matchId);
+          return next;
+        });
+        setTimeout(() => {
+          setSaveStates((prev) => ({ ...prev, [matchId]: 'idle' }));
+        }, 3000);
+      } else {
+        setSaveStates((prev) => ({ ...prev, [matchId]: 'error' }));
+      }
+    } catch {
+      setSaveStates((prev) => ({ ...prev, [matchId]: 'error' }));
     }
-  }
+  };
 
-  // A group is "complete" if it has at least 3 finished matches (each team plays 3 in group stage)
-  const completedGroups = CANONICAL_GROUPS.filter((g) => (groupCompletionMap[g] || 0) >= 3).length;
-  const totalGroups = CANONICAL_GROUPS.length;
-  const allGroupsComplete = completedGroups >= totalGroups;
-
-  const showKnockouts = process.env.NEXT_PUBLIC_SHOW_KNOCKOUTS !== 'false';
-  const hasAnyKnockoutMatches = matches.length > 0 && showKnockouts;
+  const hasAnyKnockoutMatches = matches.length > 0;
   const filteredMatches = matches.filter((m) => m.stage === activeStage);
-
-  // Show overlay only for non-admins when groups are not complete AND no knockout matches exist
-  const showOverlay = !loading && !allGroupsComplete && !hasAnyKnockoutMatches && profile?.role !== 'ADMIN';
 
   return (
     <div className="space-y-6 pb-12">
@@ -277,7 +412,7 @@ export default function KnockoutPage() {
           Fase Eliminatoria
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-          Resultados y fixture de la fase eliminatoria del Mundial 2026. El ganador avanza, el perdedor queda afuera.
+          Cargá tus pronósticos para los 16vos y seguí el fixture de la fase eliminatoria del Mundial 2026.
         </p>
       </div>
 
@@ -286,53 +421,10 @@ export default function KnockoutPage() {
           Cargando bracket eliminatorio...
         </div>
       ) : !hasAnyKnockoutMatches ? (
-        /* Próximamente banner when no knockout matches are loaded yet */
-        <div className="flex flex-col items-center justify-center py-12 space-y-8">
-          <div className="relative max-w-md w-full">
-            {/* Glow */}
-            <div className="absolute -inset-4 rounded-3xl bg-amber-500/10 blur-2xl pointer-events-none" />
-            <div className="relative sya-glass rounded-2xl p-10 text-center space-y-6 border border-amber-500/30">
-              {/* Icon */}
-              <div className="flex justify-center">
-                <div className="w-20 h-20 rounded-full bg-amber-500/10 border-2 border-amber-500/30 flex items-center justify-center">
-                  <Lock className="w-9 h-9 text-amber-500" />
-                </div>
-              </div>
-              {/* Stars decoration */}
-              <div className="flex justify-center gap-3">
-                <Star className="w-4 h-4 text-amber-500/40" />
-                <Star className="w-5 h-5 text-amber-500" />
-                <Star className="w-4 h-4 text-amber-500/40" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-3xl font-black font-serif tracking-tight">Próximamente</h2>
-                <p className="text-base font-extrabold text-amber-500 uppercase tracking-wider">Fase Eliminatoria</p>
-              </div>
-              <p className="text-sm text-gray-400 dark:text-gray-400 font-medium leading-relaxed">
-                Las llaves de la Fase Eliminatoria se publicarán en breve. ¡Prepará tus pronósticos!
-              </p>
-              {/* Progress bar */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs font-bold text-gray-400">
-                  <span>Procesando fixture</span>
-                  <span className="text-amber-500">Casi listo</span>
-                </div>
-                <div className="h-2 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 transition-all duration-700 animate-pulse"
-                    style={{ width: `85%` }}
-                  />
-                </div>
-              </div>
-              <Link
-                href="/groups"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1B199A] hover:bg-[#342ede] text-white font-bold text-sm transition-all shadow-lg shadow-[#1B199A]/20 hover:shadow-[#1B199A]/40 group cursor-pointer"
-              >
-                <span>Ver Fase de Grupos</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
-          </div>
+        <div className="sya-glass p-16 text-center space-y-4">
+          <Trophy className="w-16 h-16 text-sya-orange/30 mx-auto" />
+          <p className="text-gray-400 font-semibold text-lg">La fase eliminatoria aún no comenzó.</p>
+          <p className="text-gray-500 text-sm">Los cruces se generarán al finalizar la Fase de Grupos el 27 de junio.</p>
         </div>
       ) : (
         <>
@@ -345,7 +437,7 @@ export default function KnockoutPage() {
                 className={`px-5 py-2.5 rounded-full font-bold text-xs shrink-0 transition-all duration-200 ${
                   activeStage === stage
                     ? 'bg-sya-orange text-white shadow-md shadow-sya-orange/30'
-                    : 'bg-white dark:bg-[#111827] text-gray-600 dark:text-gray-300 hover:text-sya-orange dark:hover:text-white border border-gray-200 dark:border-gray-700'
+                    : 'bg-white dark:bg-[#111827] text-gray-500 hover:text-sya-orange border border-gray-200 dark:border-gray-800'
                 }`}
               >
                 {STAGE_LABELS[stage] || stage}
@@ -362,6 +454,13 @@ export default function KnockoutPage() {
             <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
           </div>
 
+          {/* Hint for ROUND_32 */}
+          {activeStage === 'ROUND_32' && user && (
+            <p className="text-xs text-gray-400 font-semibold text-center">
+              Ingresá tu marcador predicho en cada partido y presioná <strong>Predecir</strong> para guardar.
+            </p>
+          )}
+
           {/* Match Grid or Placeholder */}
           {filteredMatches.length === 0 ? (
             <div className="sya-glass p-12 text-center space-y-4">
@@ -372,10 +471,15 @@ export default function KnockoutPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredMatches.map((match) => (
-                <MatchCard 
-                  key={match.id} 
-                  match={match} 
-                  onShowPredictions={(m) => setSelectedMatchForAudit(m)} 
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  prediction={predictions[match.id]}
+                  saveState={saveStates[match.id]}
+                  savedMatchIds={savedMatchIds}
+                  onShowPredictions={(m) => setSelectedMatchForAudit(m)}
+                  onScoreChange={handleScoreChange}
+                  onSave={handleSavePrediction}
                 />
               ))}
             </div>
@@ -389,11 +493,6 @@ export default function KnockoutPage() {
             </div>
           )}
         </>
-      )}
-
-      {/* Coming Soon Overlay */}
-      {showOverlay && (
-        <ComingSoonOverlay groupsCompleted={completedGroups} totalGroups={totalGroups} />
       )}
 
       {selectedMatchForAudit && (
