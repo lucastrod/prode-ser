@@ -425,13 +425,13 @@ export default function HomePage() {
                       {/* Header: Date and Stage/Group */}
                       <div className="flex justify-between items-center text-xs text-gray-400 font-bold mb-4">
                         <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-sya-orange" />
+                          <Clock className="w-3.5 h-3.5 text-sya-orange dark:text-gray-300" />
                           <span>{formatMatchDate(match.matchDate)}</span>
                         </div>
                         <span className={`px-2.5 py-1 rounded-full uppercase text-[10px] font-bold ${
                           isKnockout
-                            ? 'bg-sya-orange/10 text-sya-orange border border-sya-orange/20'
-                            : 'bg-sya-blue/10 text-sya-blue'
+                            ? 'bg-sya-orange/10 dark:bg-white/10 text-sya-orange dark:text-white border border-sya-orange/20 dark:border-white/20'
+                            : 'bg-sya-blue/10 text-sya-blue dark:bg-white/10 dark:text-white dark:border dark:border-white/20'
                         }`}>
                           {getStageLabel(match)}
                         </span>
@@ -441,7 +441,7 @@ export default function HomePage() {
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                         
                         {/* Teams & Inputs Row */}
-                        <div className="flex-1 flex items-center justify-between gap-2 sm:gap-4">
+                        <div className="flex-1 flex items-center justify-between gap-2 sm:gap-4 min-w-0">
                           {/* Home Team */}
                           <div className="flex-1 text-right font-bold text-sm sm:text-base pr-1 sm:pr-2 min-w-0 flex items-center justify-end gap-1.5">
                             <span className="text-base sm:text-lg shrink-0" title={match.homeTeam}>{getFlagEmoji(match.homeTeam)}</span>
