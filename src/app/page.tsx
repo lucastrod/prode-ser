@@ -139,13 +139,13 @@ export default function HomePage() {
           // Prefer knockout matches for upcoming
           const knockoutUpcoming = allMatches
             .filter((m) =>
-              m.stage === 'ROUND_OF_32' &&
+              m.stage === 'ROUND_32' &&
               m.status === 'SCHEDULED' &&
               new Date(m.matchDate).getTime() - 15 * 60000 > now.getTime()
             )
             .slice(0, 32);
 
-          const anyKnockout = allMatches.some((m) => m.stage === 'ROUND_OF_32');
+          const anyKnockout = allMatches.some((m) => m.stage === 'ROUND_32');
           setHasKnockoutMatches(anyKnockout);
 
           // If no knockout matches yet, fall back to group stage upcoming (read-only, no save)
