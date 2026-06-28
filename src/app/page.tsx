@@ -415,7 +415,7 @@ export default function HomePage() {
             <div className="space-y-4">
               <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                 {upcomingMatches.map((match) => {
-                  const pred = predictions[match.id] || { predictedHomeScore: 0, predictedAwayScore: 0 };
+                  const pred = predictions[match.id] || { predictedHomeScore: '', predictedAwayScore: '' };
                   const saveState = saveStates[match.id] || 'idle';
                   const isKnockout = match.stage && match.stage !== 'GROUP';
                   
@@ -455,6 +455,7 @@ export default function HomePage() {
                                 type="text"
                                 inputMode="numeric"
                                 pattern="[0-9]*"
+                                placeholder="-"
                                 value={pred.predictedHomeScore}
                                 onChange={(e) => handleScoreChange(match.id, 'home', e.target.value)}
                                 onKeyDown={handleNumericKeyDown}
@@ -465,6 +466,7 @@ export default function HomePage() {
                                 type="text"
                                 inputMode="numeric"
                                 pattern="[0-9]*"
+                                placeholder="-"
                                 value={pred.predictedAwayScore}
                                 onChange={(e) => handleScoreChange(match.id, 'away', e.target.value)}
                                 onKeyDown={handleNumericKeyDown}
