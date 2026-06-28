@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Stage, MatchStatus } from '@prisma/client';
 import db from '@/lib/db';
+import fs from 'fs';
+import path from 'path';
+import { TEAM_TRANSLATIONS, parseMatchDateTime } from '@/lib/sync-matches';
 
 interface TeamStanding {
   team: string;
@@ -129,10 +132,54 @@ export async function POST(_request: NextRequest) {
     const groupStandings = buildGroupStandings(groupMatches);
 
     // 2. Get all existing knockout matches
-    const knockoutMatches = await db.match.findMany({
+    let knockoutMatches = await db.match.findMany({
       where: { stage: { not: Stage.GROUP } },
       orderBy: { matchDate: 'asc' },
     });
+
+    // If no knockout matches exist, import them from fixture/worldcup.json first!
+    if (knockoutMatches.length === 0) {
+      const filePath = path.join(process.cwd(), 'fixture', 'worldcup.json');
+      const rawData = fs.readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(rawData);
+      
+      const rawKnockoutMatches = (data.matches || []).filter((m: any) => !m.group);
+      
+      const matchesToInsert = rawKnockoutMatches.map((fixture: any, idx: number) => {
+        const matchDate = parseMatchDateTime(fixture.date, fixture.time);
+        const homeTeam = TEAM_TRANSLATIONS[fixture.team1] || fixture.team1;
+        const awayTeam = TEAM_TRANSLATIONS[fixture.team2] || fixture.team2;
+        const groupName = 'Fase Final';
+        
+        let stage: Stage = Stage.GROUP;
+        if (fixture.round === 'Round of 32') stage = Stage.ROUND_32;
+        else if (fixture.round === 'Round of 16') stage = Stage.ROUND_16;
+        else if (fixture.round === 'Quarter-final') stage = Stage.QUARTER;
+        else if (fixture.round === 'Semi-final') stage = Stage.SEMI;
+        else if (fixture.round === 'Match for third place') stage = Stage.THIRD_PLACE;
+        else if (fixture.round === 'Final') stage = Stage.FINAL;
+        
+        return {
+          externalMatchId: `openfootball_2026_knockout_${idx + 1}`,
+          homeTeam,
+          awayTeam,
+          matchDate,
+          groupName,
+          stage,
+          status: MatchStatus.SCHEDULED,
+        };
+      });
+      
+      await db.match.createMany({
+        data: matchesToInsert
+      });
+      
+      // Reload
+      knockoutMatches = await db.match.findMany({
+        where: { stage: { not: Stage.GROUP } },
+        orderBy: { matchDate: 'asc' },
+      });
+    }
 
     // 3. Deduplicate: if there are multiple matches with the same stage + matchDate,
     //    keep the one with a resolved team name (not placeholder), delete the others.
