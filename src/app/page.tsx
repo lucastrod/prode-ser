@@ -139,14 +139,13 @@ export default function HomePage() {
           // Prefer knockout matches for upcoming
           const knockoutUpcoming = allMatches
             .filter((m) =>
-              m.stage &&
-              m.stage !== 'GROUP' &&
+              m.stage === 'ROUND_OF_32' &&
               m.status === 'SCHEDULED' &&
               new Date(m.matchDate).getTime() - 15 * 60000 > now.getTime()
             )
             .slice(0, 32);
 
-          const anyKnockout = allMatches.some((m) => m.stage && m.stage !== 'GROUP');
+          const anyKnockout = allMatches.some((m) => m.stage === 'ROUND_OF_32');
           setHasKnockoutMatches(anyKnockout);
 
           // If no knockout matches yet, fall back to group stage upcoming (read-only, no save)
@@ -326,7 +325,7 @@ export default function HomePage() {
 
       {/* Quick Actions Grid */}
       <section className="space-y-4">
-        <h2 className="text-xl font-extrabold font-serif tracking-wide border-l-4 border-sya-orange pl-3">
+        <h2 className="text-xl font-extrabold font-serif tracking-wide border-l-4 border-sya-orange dark:border-indigo-400 pl-3">
           Accesos Rápidos
         </h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
@@ -347,7 +346,7 @@ export default function HomePage() {
                 <p className="text-xs text-gray-400 font-medium mt-1 mb-3 sm:mb-4 hidden sm:block">
                   {action.desc}
                 </p>
-                <div className="flex items-center text-xs font-bold text-sya-blue group-hover:text-sya-orange transition-colors mt-2">
+                <div className="flex items-center text-xs font-bold text-sya-blue dark:text-indigo-400 group-hover:text-sya-orange dark:group-hover:text-white transition-colors mt-2">
                   <span>Ir ahora</span>
                   <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -363,11 +362,11 @@ export default function HomePage() {
         {/* Left 2 Cols: Upcoming matches */}
         <section className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-extrabold font-serif tracking-wide border-l-4 border-sya-orange pl-3">
+            <h2 className="text-xl font-extrabold font-serif tracking-wide border-l-4 border-sya-orange dark:border-indigo-400 pl-3">
               Próximos Partidos a Jugar
             </h2>
             {upcomingAreKnockout && (
-              <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider bg-sya-orange/10 text-sya-orange px-3 py-1.5 rounded-full border border-sya-orange/20">
+              <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider bg-sya-orange/10 dark:bg-white/10 text-sya-orange dark:text-white px-3 py-1.5 rounded-full border border-sya-orange/20 dark:border-white/20">
                 <Swords className="w-3 h-3" />
                 Fase Eliminatoria
               </span>
@@ -552,12 +551,12 @@ export default function HomePage() {
 
         {/* Right 1 Col: Rule cards & info */}
         <section className="space-y-4">
-          <h2 className="text-xl font-extrabold font-serif tracking-wide border-l-4 border-[#1B199A] pl-3">
+          <h2 className="text-xl font-extrabold font-serif tracking-wide border-l-4 border-[#1B199A] dark:border-indigo-400 pl-3">
             Reglas del PRODE
           </h2>
           <div className="sya-glass p-6 space-y-4">
             <div className="space-y-2">
-              <h3 className="font-extrabold text-sm text-[#1B199A] uppercase tracking-wider">Cómputo de Puntos</h3>
+              <h3 className="font-extrabold text-sm text-[#1B199A] dark:text-indigo-400 uppercase tracking-wider">Cómputo de Puntos</h3>
               <ul className="text-xs space-y-2 font-semibold">
                 <li className="flex items-start gap-2 text-green-500">
                   <span className="font-bold w-10 shrink-0">6 pts</span>
@@ -577,7 +576,7 @@ export default function HomePage() {
             <div className="h-px bg-gray-200 dark:bg-gray-800"></div>
 
             <div className="space-y-2">
-              <h3 className="font-extrabold text-sm text-sya-orange uppercase tracking-wider">Tiempos de Carga</h3>
+              <h3 className="font-extrabold text-sm text-sya-orange dark:text-indigo-400 uppercase tracking-wider">Tiempos de Carga</h3>
               <p className="text-xs text-gray-400 font-medium leading-relaxed">
                 Podés cargar o modificar tus predicciones en cualquier momento. Por seguridad, se bloquearán automáticamente 15 minutos antes del inicio del partido.
               </p>
