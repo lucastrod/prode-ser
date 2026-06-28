@@ -186,9 +186,23 @@ export default function AdminPage() {
   };
 
   const handleGenerateKnockout = async () => {
+    const hasKnockouts = matchesList.some((m) => m.groupName === 'Fase Final' || m.groupName === 'Fase de Grupos' === false && m.groupName !== '');
+    let url = '/api/admin/knockout/generate';
+    
+    if (hasKnockouts) {
+      const confirmReset = window.confirm(
+        '⚠️ Ya existen llaves de la Fase Eliminatoria en la base de datos.\n\n¿Querés recrearlas de cero usando los nuevos clasificatorios? (Esto sobrescribirá los cruces actuales por los nuevos corregidos).'
+      );
+      if (confirmReset) {
+        url += '?reset=true';
+      } else {
+        return;
+      }
+    }
+
     setActionLoading(true);
     try {
-      const res = await fetch('/api/admin/knockout/generate', { method: 'POST' });
+      const res = await fetch(url, { method: 'POST' });
       const data = await res.json();
       if (res.ok) {
         const lines: string[] = [`✅ ${data.message}`];

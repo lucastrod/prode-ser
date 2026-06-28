@@ -122,8 +122,20 @@ function resolveFromStandings(
   return null;
 }
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const forceReset = searchParams.get('reset') === 'true';
+
+    if (forceReset) {
+      await db.prediction.deleteMany({
+        where: { match: { stage: { not: Stage.GROUP } } }
+      });
+      await db.match.deleteMany({
+        where: { stage: { not: Stage.GROUP } }
+      });
+    }
+
     // 1. Build group standings from DB
     const groupMatches = await db.match.findMany({
       where: { stage: Stage.GROUP },
