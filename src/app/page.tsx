@@ -144,7 +144,7 @@ export default function HomePage() {
               m.status === 'SCHEDULED' &&
               new Date(m.matchDate).getTime() - 15 * 60000 > now.getTime()
             )
-            .slice(0, 10);
+            .slice(0, 32);
 
           const anyKnockout = allMatches.some((m) => m.stage && m.stage !== 'GROUP');
           setHasKnockoutMatches(anyKnockout);
