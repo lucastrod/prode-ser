@@ -4,10 +4,10 @@ import db from '@/lib/db';
 export async function GET(req: NextRequest) {
   try {
     const users = await db.user.findMany({
-      where: { name: { contains: 'Lucas', mode: 'insensitive' } }
+      where: { name: { contains: 'Lucas Castro', mode: 'insensitive' } }
     });
     
-    if (!users.length) return NextResponse.json({ error: 'Usuario Lucas no encontrado' });
+    if (!users.length) return NextResponse.json({ error: 'Usuario Lucas Castro no encontrado' });
     const lucas = users[0];
 
     const matches = await db.match.findMany({
