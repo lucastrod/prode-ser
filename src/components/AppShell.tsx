@@ -99,8 +99,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
     fetchStats();
     // Refresh stats when path changes (like after predicting or recalculating)
-    const interval = setInterval(fetchStats, 10000);
-    return () => clearInterval(interval);
+    // Removed 10s interval to prevent hitting Vercel Fast Origin Transfer limits.
   }, [user, pathname]);
 
   // Redirect to login if not authenticated and not loading (exclude public pages)
