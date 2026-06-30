@@ -689,6 +689,7 @@ export const dbClient = {
             status: matchData.status,
             homeScore: matchData.homeScore !== undefined ? matchData.homeScore : undefined,
             awayScore: matchData.awayScore !== undefined ? matchData.awayScore : undefined,
+            penaltyWinner: matchData.penaltyWinner !== undefined ? matchData.penaltyWinner : undefined,
           },
         });
 
@@ -717,6 +718,7 @@ export const dbClient = {
         status: matchData.status ?? data.matches[idx].status,
         homeScore: matchData.homeScore !== undefined ? matchData.homeScore : data.matches[idx].homeScore,
         awayScore: matchData.awayScore !== undefined ? matchData.awayScore : data.matches[idx].awayScore,
+        penaltyWinner: matchData.penaltyWinner !== undefined ? matchData.penaltyWinner : data.matches[idx].penaltyWinner,
       };
 
       if (matchData.status === 'FINISHED') {

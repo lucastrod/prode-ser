@@ -77,12 +77,12 @@ export default function AdminPage() {
   const [syncToast, setSyncToast] = useState<{ matches: string[]; visible: boolean } | null>(null);
 
   // Filters for matches and results
-  const [filterStage, setFilterStage] = useState<string>('ALL');
+  const [filterStage, setFilterStage] = useState<string>('Round of 32');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
 
   // Forms
   const [userForm, setUserForm] = useState<{ id: string; name: string; email: string; role: 'USER' | 'ADMIN'; password: string }>({ id: '', name: '', email: '', role: 'USER', password: '' });
-  const [matchForm, setMatchForm] = useState<{ id: number; homeTeam: string; awayTeam: string; matchDate: string; groupName: string; status: 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'CANCELLED'; homeScore: string; awayScore: string }>({ id: 0, homeTeam: '', awayTeam: '', matchDate: '', groupName: 'Grupo A', status: 'SCHEDULED', homeScore: '', awayScore: '' });
+  const [matchForm, setMatchForm] = useState<{ id: number; homeTeam: string; awayTeam: string; matchDate: string; groupName: string; status: 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'CANCELLED'; homeScore: string; awayScore: string; penaltyWinner?: string | null }>({ id: 0, homeTeam: '', awayTeam: '', matchDate: '', groupName: 'Grupo A', status: 'SCHEDULED', homeScore: '', awayScore: '', penaltyWinner: null });
   const [prizeForm, setPrizeForm] = useState({ id: 0, position: 1, title: '', description: '', enabled: true });
   
   const [editingId, setEditingId] = useState<string | number | null>(null);
@@ -246,7 +246,7 @@ export default function AdminPage() {
     setSyncMessage(null);
     // Reset any open editing state so sync doesn't leave form open
     setEditingId(null);
-    setMatchForm({ id: 0, homeTeam: '', awayTeam: '', matchDate: '', groupName: 'Grupo A', status: 'SCHEDULED', homeScore: '', awayScore: '' });
+    setMatchForm({ id: 0, homeTeam: '', awayTeam: '', matchDate: '', groupName: 'Grupo A', status: 'SCHEDULED', homeScore: '', awayScore: '', penaltyWinner: null });
     try {
       const res = await fetch('/api/admin/matches/sync-preview');
       const data = await res.json();
@@ -295,7 +295,7 @@ export default function AdminPage() {
 
       // Reset form/editing state before reloading to prevent stale UI
       setEditingId(null);
-      setMatchForm({ id: 0, homeTeam: '', awayTeam: '', matchDate: '', groupName: 'Grupo A', status: 'SCHEDULED', homeScore: '', awayScore: '' });
+      setMatchForm({ id: 0, homeTeam: '', awayTeam: '', matchDate: '', groupName: 'Grupo A', status: 'SCHEDULED', homeScore: '', awayScore: '', penaltyWinner: null });
       await loadData();
 
       if (savedMatches.length > 0) {
@@ -405,6 +405,7 @@ export default function AdminPage() {
         ...matchForm,
         homeScore: matchForm.homeScore === '' ? undefined : Number(matchForm.homeScore),
         awayScore: matchForm.awayScore === '' ? undefined : Number(matchForm.awayScore),
+        penaltyWinner: matchForm.penaltyWinner,
       };
 
       const res = await fetch(url, {
@@ -414,7 +415,7 @@ export default function AdminPage() {
       });
 
       if (res.ok) {
-        setMatchForm({ id: 0, homeTeam: '', awayTeam: '', matchDate: '', groupName: 'Grupo A', status: 'SCHEDULED', homeScore: '', awayScore: '' });
+        setMatchForm({ id: 0, homeTeam: '', awayTeam: '', matchDate: '', groupName: 'Grupo A', status: 'SCHEDULED', homeScore: '', awayScore: '', penaltyWinner: null });
         setEditingId(null);
         await loadData();
       } else {
@@ -966,7 +967,7 @@ export default function AdminPage() {
                     {matchForm.id !== 0 && (
                       <button 
                         type="button" 
-                        onClick={() => setMatchForm({ id: 0, homeTeam: '', awayTeam: '', matchDate: '', groupName: 'Grupo A', status: 'SCHEDULED', homeScore: '', awayScore: '' })}
+                        onClick={() => setMatchForm({ id: 0, homeTeam: '', awayTeam: '', matchDate: '', groupName: 'Grupo A', status: 'SCHEDULED', homeScore: '', awayScore: '', penaltyWinner: null })}
                         className="py-3 px-4 sya-button-secondary text-xs"
                       >
                         Cancelar
@@ -1021,6 +1022,7 @@ export default function AdminPage() {
                                   status: m.status,
                                   homeScore: m.homeScore !== null ? String(m.homeScore) : '',
                                   awayScore: m.awayScore !== null ? String(m.awayScore) : '',
+                                  penaltyWinner: (m as any).penaltyWinner || null,
                                 });
                                 setEditingId(m.id);
                               }}
@@ -1095,6 +1097,19 @@ export default function AdminPage() {
                                   className="w-10 h-8 text-center bg-gray-500/5 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-extrabold focus:outline-none"
                                 />
                               </div>
+                              {matchForm.homeScore !== '' && matchForm.homeScore === matchForm.awayScore && !m.groupName.includes('Grupo') && (
+                                <div className="mt-2">
+                                  <select
+                                    value={matchForm.penaltyWinner || ''}
+                                    onChange={(e) => setMatchForm({ ...matchForm, penaltyWinner: e.target.value || null })}
+                                    className="w-full text-[10px] py-1 px-1 bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 rounded focus:outline-none"
+                                  >
+                                    <option value="">Ganador en Penales...</option>
+                                    <option value="home">{m.homeTeam}</option>
+                                    <option value="away">{m.awayTeam}</option>
+                                  </select>
+                                </div>
+                              )}
                             ) : (
                               <span className="font-extrabold text-sya-blue">
                                 {m.homeScore !== null ? `${m.homeScore} - ${m.awayScore}` : '-'}
@@ -1133,6 +1148,7 @@ export default function AdminPage() {
                                     status: 'FINISHED',
                                     homeScore: m.homeScore !== null ? String(m.homeScore) : '0',
                                     awayScore: m.awayScore !== null ? String(m.awayScore) : '0',
+                                    penaltyWinner: (m as any).penaltyWinner || null,
                                   });
                                   setEditingId(m.id);
                                 }}
@@ -1169,22 +1185,37 @@ export default function AdminPage() {
                       
                       <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-800">
                         {isEditingThis ? (
-                          <div className="flex items-center gap-1.5">
-                            <input
-                              type="number"
-                              min="0"
-                              value={matchForm.homeScore}
-                              onChange={(e) => setMatchForm({ ...matchForm, homeScore: e.target.value })}
-                              className="w-12 h-10 text-center bg-gray-500/10 border border-gray-300 dark:border-gray-700 rounded-lg text-base font-black focus:outline-none"
-                            />
-                            <span className="font-bold text-gray-400">-</span>
-                            <input
-                              type="number"
-                              min="0"
-                              value={matchForm.awayScore}
-                              onChange={(e) => setMatchForm({ ...matchForm, awayScore: e.target.value })}
-                              className="w-12 h-10 text-center bg-gray-500/10 border border-gray-300 dark:border-gray-700 rounded-lg text-base font-black focus:outline-none"
-                            />
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-1.5 justify-center">
+                              <input
+                                type="number"
+                                min="0"
+                                value={matchForm.homeScore}
+                                onChange={(e) => setMatchForm({ ...matchForm, homeScore: e.target.value })}
+                                className="w-12 h-10 text-center bg-gray-500/10 border border-gray-300 dark:border-gray-700 rounded-lg text-base font-black focus:outline-none"
+                              />
+                              <span className="font-bold text-gray-400">-</span>
+                              <input
+                                type="number"
+                                min="0"
+                                value={matchForm.awayScore}
+                                onChange={(e) => setMatchForm({ ...matchForm, awayScore: e.target.value })}
+                                className="w-12 h-10 text-center bg-gray-500/10 border border-gray-300 dark:border-gray-700 rounded-lg text-base font-black focus:outline-none"
+                              />
+                            </div>
+                            {matchForm.homeScore !== '' && matchForm.homeScore === matchForm.awayScore && !m.groupName.includes('Grupo') && (
+                              <div className="w-full">
+                                <select
+                                  value={matchForm.penaltyWinner || ''}
+                                  onChange={(e) => setMatchForm({ ...matchForm, penaltyWinner: e.target.value || null })}
+                                  className="w-full text-xs py-1.5 px-2 bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 rounded focus:outline-none"
+                                >
+                                  <option value="">Ganador en Penales...</option>
+                                  <option value="home">{m.homeTeam}</option>
+                                  <option value="away">{m.awayTeam}</option>
+                                </select>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <div className="font-black text-xl text-sya-blue">
@@ -1221,6 +1252,7 @@ export default function AdminPage() {
                                   status: 'FINISHED',
                                   homeScore: m.homeScore !== null ? String(m.homeScore) : '0',
                                   awayScore: m.awayScore !== null ? String(m.awayScore) : '0',
+                                  penaltyWinner: (m as any).penaltyWinner || null,
                                 });
                                 setEditingId(m.id);
                               }}

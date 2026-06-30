@@ -33,12 +33,14 @@ export async function POST() {
       const type = ref.substring(0, 1); // 'W' or 'L'
       const matchNum = ref.substring(1);
       
-      // Find the match in DB. Its externalMatchId in R32 is `r32_{num}`, in subsequent rounds it is `{num}`
+      // Find the match in DB.
       const referencedMatch = await db.match.findFirst({
         where: {
           OR: [
             { externalMatchId: matchNum },
-            { externalMatchId: `r32_${matchNum}` }
+            { externalMatchId: `r32_${matchNum}` },
+            { externalMatchId: `openfootball_2026_${matchNum}` },
+            { externalMatchId: `openfootball_2026_knockout_${parseInt(matchNum) - 72}` }
           ]
         }
       });
