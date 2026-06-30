@@ -1080,36 +1080,38 @@ export default function AdminPage() {
                           {/* Score Input/Display */}
                           <td className="py-4 text-center">
                             {isEditingThis ? (
-                              <div className="flex items-center justify-center gap-1.5">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={matchForm.homeScore}
-                                  onChange={(e) => setMatchForm({ ...matchForm, homeScore: e.target.value })}
-                                  className="w-10 h-8 text-center bg-gray-500/5 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-extrabold focus:outline-none"
-                                />
-                                <span>-</span>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={matchForm.awayScore}
-                                  onChange={(e) => setMatchForm({ ...matchForm, awayScore: e.target.value })}
-                                  className="w-10 h-8 text-center bg-gray-500/5 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-extrabold focus:outline-none"
-                                />
-                              </div>
-                              {matchForm.homeScore !== '' && matchForm.homeScore === matchForm.awayScore && !m.groupName.includes('Grupo') && (
-                                <div className="mt-2">
-                                  <select
-                                    value={matchForm.penaltyWinner || ''}
-                                    onChange={(e) => setMatchForm({ ...matchForm, penaltyWinner: e.target.value || null })}
-                                    className="w-full text-[10px] py-1 px-1 bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 rounded focus:outline-none"
-                                  >
-                                    <option value="">Ganador en Penales...</option>
-                                    <option value="home">{m.homeTeam}</option>
-                                    <option value="away">{m.awayTeam}</option>
-                                  </select>
+                              <div className="flex flex-col items-center">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={matchForm.homeScore}
+                                    onChange={(e) => setMatchForm({ ...matchForm, homeScore: e.target.value })}
+                                    className="w-10 h-8 text-center bg-gray-500/5 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-extrabold focus:outline-none"
+                                  />
+                                  <span>-</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={matchForm.awayScore}
+                                    onChange={(e) => setMatchForm({ ...matchForm, awayScore: e.target.value })}
+                                    className="w-10 h-8 text-center bg-gray-500/5 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-extrabold focus:outline-none"
+                                  />
                                 </div>
-                              )}
+                                {matchForm.homeScore !== '' && matchForm.homeScore === matchForm.awayScore && !m.groupName.includes('Grupo') && (
+                                  <div className="mt-2 w-full">
+                                    <select
+                                      value={matchForm.penaltyWinner || ''}
+                                      onChange={(e) => setMatchForm({ ...matchForm, penaltyWinner: e.target.value || null })}
+                                      className="w-full text-[10px] py-1 px-1 bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 rounded focus:outline-none"
+                                    >
+                                      <option value="">Ganador en Penales...</option>
+                                      <option value="home">{m.homeTeam}</option>
+                                      <option value="away">{m.awayTeam}</option>
+                                    </select>
+                                  </div>
+                                )}
+                              </div>
                             ) : (
                               <span className="font-extrabold text-sya-blue">
                                 {m.homeScore !== null ? `${m.homeScore} - ${m.awayScore}` : '-'}

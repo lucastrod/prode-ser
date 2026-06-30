@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Swords, Trophy, Clock, CheckCircle, Eye, Save, Edit2, AlertCircle } from 'lucide-react';
 import OtherPredictionsModal from '@/components/OtherPredictionsModal';
 import { useAuth } from '@/context/AuthContext';
+import { getFlagEmoji } from '@/app/page';
 
 interface KnockoutMatch {
   id: number;
@@ -32,71 +33,6 @@ const STAGE_LABELS: Record<string, string> = {
   THIRD_PLACE: '3er Puesto',
   FINAL: 'Gran Final',
 };
-
-const FLAG_MAP: Record<string, string> = {
-  "Alemania": "🇩🇪",
-  "Argelia": "🇩🇿",
-  "Argentina": "🇦🇷",
-  "Arabia Saudita": "🇸🇦",
-  "Australia": "🇦🇺",
-  "Austria": "🇦🇹",
-  "Bélgica": "🇧🇪",
-  "Bosnia y Herzegovina": "🇧🇦",
-  "Brasil": "🇧🇷",
-  "Canadá": "🇨🇦",
-  "Cabo Verde": "🇨🇻",
-  "Colombia": "🇨🇴",
-  "Corea del Sur": "🇰🇷",
-  "Costa de Marfil": "🇨🇮",
-  "Croacia": "🇭🇷",
-  "Curazao": "🇨🇼",
-  "Ecuador": "🇪🇨",
-  "Egipto": "🇪🇬",
-  "España": "🇪🇸",
-  "Estados Unidos": "🇺🇸",
-  "Francia": "🇫🇷",
-  "Ghana": "🇬🇭",
-  "Haití": "🇭🇹",
-  "Inglaterra": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-  "Irak": "🇮🇶",
-  "Irán": "🇮🇷",
-  "Japón": "🇯🇵",
-  "Jordania": "🇯🇴",
-  "Marruecos": "🇲🇦",
-  "México": "🇲🇽",
-  "Noruega": "🇳🇴",
-  "Nueva Zelanda": "🇳🇿",
-  "Países Bajos": "🇳🇱",
-  "Panamá": "🇵🇦",
-  "Paraguay": "🇵🇾",
-  "Portugal": "🇵🇹",
-  "Qatar": "🇶🇦",
-  "República Checa": "🇨🇿",
-  "RD Congo": "🇨🇩",
-  "República Democrática del Congo": "🇨🇩",
-  "Escocia": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-  "Senegal": "🇸🇳",
-  "Sudáfrica": "🇿🇦",
-  "Suecia": "🇸🇪",
-  "Suiza": "🇨🇭",
-  "Túnez": "🇹🇳",
-  "Turquía": "🇹🇷",
-  "Uruguay": "🇺🇾",
-  "Uzbekistán": "🇺🇿",
-};
-
-export function getFlagEmoji(teamName: string): string {
-  if (!teamName) return "";
-  const cleanName = teamName.replace(/^\[|\]$/g, '').trim();
-  if (FLAG_MAP[cleanName]) return FLAG_MAP[cleanName];
-  
-  for (const [key, val] of Object.entries(FLAG_MAP)) {
-    if (cleanName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(cleanName.toLowerCase())) {
-      return val;
-    }
-  }
-  return "";
-}
 
 const STAGE_ORDER = ['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', 'THIRD_PLACE', 'FINAL'];
 

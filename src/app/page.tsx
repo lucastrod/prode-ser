@@ -19,68 +19,84 @@ import {
   Lock,
 } from 'lucide-react';
 const FLAG_MAP: Record<string, string> = {
-  "Alemania": "🇩🇪",
-  "Argelia": "🇩🇿",
-  "Argentina": "🇦🇷",
-  "Arabia Saudita": "🇸🇦",
-  "Australia": "🇦🇺",
-  "Austria": "🇦🇹",
-  "Bélgica": "🇧🇪",
-  "Bosnia y Herzegovina": "🇧🇦",
-  "Brasil": "🇧🇷",
-  "Canadá": "🇨🇦",
-  "Cabo Verde": "🇨🇻",
-  "Colombia": "🇨🇴",
-  "Corea del Sur": "🇰🇷",
-  "Costa de Marfil": "🇨🇮",
-  "Croacia": "🇭🇷",
-  "Curazao": "🇨🇼",
-  "Ecuador": "🇪🇨",
-  "Egipto": "🇪🇬",
-  "España": "🇪🇸",
-  "Estados Unidos": "🇺🇸",
-  "Francia": "🇫🇷",
-  "Ghana": "🇬🇭",
-  "Haití": "🇭🇹",
-  "Inglaterra": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-  "Irak": "🇮🇶",
-  "Irán": "🇮🇷",
-  "Japón": "🇯🇵",
-  "Jordania": "🇯🇴",
-  "Marruecos": "🇲🇦",
-  "México": "🇲🇽",
-  "Noruega": "🇳🇴",
-  "Nueva Zelanda": "🇳🇿",
-  "Países Bajos": "🇳🇱",
-  "Panamá": "🇵🇦",
-  "Paraguay": "🇵🇾",
-  "Portugal": "🇵🇹",
-  "Qatar": "🇶🇦",
-  "República Checa": "🇨🇿",
-  "República Democrática del Congo": "🇨🇩",
-  "Escocia": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-  "Senegal": "🇸🇳",
-  "Sudáfrica": "🇿🇦",
-  "Suecia": "🇸🇪",
-  "Suiza": "🇨🇭",
-  "Túnez": "🇹🇳",
-  "Turquía": "🇹🇷",
-  "Uruguay": "🇺🇾",
-  "Uzbekistán": "🇺🇿",
+  "Alemania": "de",
+  "Argelia": "dz",
+  "Argentina": "ar",
+  "Arabia Saudita": "sa",
+  "Australia": "au",
+  "Austria": "at",
+  "Bélgica": "be",
+  "Bosnia y Herzegovina": "ba",
+  "Brasil": "br",
+  "Canadá": "ca",
+  "Cabo Verde": "cv",
+  "Colombia": "co",
+  "Corea del Sur": "kr",
+  "Costa de Marfil": "ci",
+  "Croacia": "hr",
+  "Curazao": "cw",
+  "Ecuador": "ec",
+  "Egipto": "eg",
+  "España": "es",
+  "Estados Unidos": "us",
+  "Francia": "fr",
+  "Ghana": "gh",
+  "Haití": "ht",
+  "Inglaterra": "gb-eng",
+  "Irak": "iq",
+  "Irán": "ir",
+  "Japón": "jp",
+  "Jordania": "jo",
+  "Marruecos": "ma",
+  "México": "mx",
+  "Noruega": "no",
+  "Nueva Zelanda": "nz",
+  "Países Bajos": "nl",
+  "Panamá": "pa",
+  "Paraguay": "py",
+  "Portugal": "pt",
+  "Qatar": "qa",
+  "República Checa": "cz",
+  "República Democrática del Congo": "cd",
+  "Escocia": "gb-sct",
+  "Senegal": "sn",
+  "Sudáfrica": "za",
+  "Suecia": "se",
+  "Suiza": "ch",
+  "Túnez": "tn",
+  "Turquía": "tr",
+  "Uruguay": "uy",
+  "Uzbekistán": "uz",
 };
 
-export function getFlagEmoji(teamName: string): string {
-  if (!teamName) return "";
+export function getFlagEmoji(teamName: string): React.ReactNode {
+  if (!teamName) return null;
   const cleanName = teamName.replace(/^\[|\]$/g, '').trim();
-  if (FLAG_MAP[cleanName]) return FLAG_MAP[cleanName];
   
-  // Try case insensitive or substring
-  for (const [key, val] of Object.entries(FLAG_MAP)) {
-    if (cleanName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(cleanName.toLowerCase())) {
-      return val;
+  let isoCode = "";
+  if (FLAG_MAP[cleanName]) {
+    isoCode = FLAG_MAP[cleanName];
+  } else {
+    for (const [key, val] of Object.entries(FLAG_MAP)) {
+      if (cleanName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(cleanName.toLowerCase())) {
+        isoCode = val;
+        break;
+      }
     }
   }
-  return "";
+
+  if (!isoCode) return null;
+
+  return (
+    <img 
+      src={`https://flagcdn.com/w40/${isoCode}.png`}
+      srcSet={`https://flagcdn.com/w80/${isoCode}.png 2x`}
+      width="20" 
+      height="15" 
+      alt={`${cleanName} flag`} 
+      className="inline-block rounded-sm shadow-sm border border-gray-200 dark:border-gray-800"
+    />
+  );
 }
 
 

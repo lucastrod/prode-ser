@@ -23,6 +23,7 @@ interface MockMatch {
   status: 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'CANCELLED';
   homeScore: number | null;
   awayScore: number | null;
+  penaltyWinner?: string | null;
 }
 
 interface MockPrediction {
