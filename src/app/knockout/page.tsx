@@ -121,13 +121,13 @@ function MatchCard({
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
               <span className="text-base sm:text-lg shrink-0" title={match.homeTeam.replace(/^\[|\]$/g, '')}>{getFlagEmoji(match.homeTeam)}</span>
               <span className={`font-bold text-sm truncate ${
-                homeWins ? 'text-sya-orange' : ''
+                homeWins ? 'text-blue-600 dark:text-blue-400' : ''
               } ${isPlaceholder && match.homeTeam.startsWith('[') ? 'text-gray-400 italic text-xs' : ''}`}>
                 {match.homeTeam.replace(/^\[|\]$/g, '')}
               </span>
             </div>
             {isFinished && (
-              <span className={`text-lg font-black w-7 text-center ${homeWins ? 'text-sya-orange' : 'text-gray-400'}`}>
+              <span className={`text-lg font-black w-7 text-center ${homeWins ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'}`}>
                 {match.homeScore}
               </span>
             )}
@@ -153,13 +153,13 @@ function MatchCard({
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
               <span className="text-base sm:text-lg shrink-0" title={match.awayTeam.replace(/^\[|\]$/g, '')}>{getFlagEmoji(match.awayTeam)}</span>
               <span className={`font-bold text-sm truncate ${
-                awayWins ? 'text-sya-orange' : ''
+                awayWins ? 'text-blue-600 dark:text-blue-400' : ''
               } ${isPlaceholder && match.awayTeam.startsWith('[') ? 'text-gray-400 italic text-xs' : ''}`}>
                 {match.awayTeam.replace(/^\[|\]$/g, '')}
               </span>
             </div>
             {isFinished && (
-              <span className={`text-lg font-black w-7 text-center ${awayWins ? 'text-sya-orange' : 'text-gray-400'}`}>
+              <span className={`text-lg font-black w-7 text-center ${awayWins ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'}`}>
                 {match.awayScore}
               </span>
             )}
@@ -231,7 +231,7 @@ function MatchCard({
       {isLocked && !isPlaceholder && onShowPredictions && (
         <button
           onClick={() => onShowPredictions(match)}
-          className="w-full py-2 bg-gray-500/5 hover:bg-sya-orange/10 hover:text-sya-orange text-gray-400 font-bold text-[9px] uppercase tracking-wider border-t border-gray-200 dark:border-gray-800 flex items-center justify-center gap-1 transition-all"
+          className="w-full py-2 bg-gray-500/5 hover:bg-sya-orange/10 hover:text-blue-600 dark:hover:text-blue-400 text-gray-400 font-bold text-[9px] uppercase tracking-wider border-t border-gray-200 dark:border-gray-800 flex items-center justify-center gap-1 transition-all"
         >
           <Eye className="w-3.5 h-3.5" />
           <span>Predicciones</span>
@@ -358,7 +358,7 @@ export default function KnockoutPage() {
         </div>
       ) : !hasAnyKnockoutMatches ? (
         <div className="sya-glass p-16 text-center space-y-4">
-          <Trophy className="w-16 h-16 text-sya-orange/30 mx-auto" />
+          <Trophy className="w-16 h-16 text-blue-600/30 dark:text-blue-400/30 mx-auto" />
           <p className="text-gray-400 font-semibold text-lg">La fase eliminatoria aún no comenzó.</p>
           <p className="text-gray-500 text-sm">Los cruces se generarán al finalizar la Fase de Grupos el 27 de junio.</p>
         </div>
@@ -373,7 +373,7 @@ export default function KnockoutPage() {
                 className={`px-5 py-2.5 rounded-full font-bold text-xs shrink-0 transition-all duration-200 ${
                   activeStage === stage
                     ? 'bg-sya-orange text-white shadow-md shadow-sya-orange/30'
-                    : 'bg-white dark:bg-[#111827] text-gray-500 hover:text-sya-orange border border-gray-200 dark:border-gray-800'
+                    : 'bg-white dark:bg-[#111827] text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 border border-gray-200 dark:border-gray-800'
                 }`}
               >
                 {STAGE_LABELS[stage] || stage}
@@ -384,7 +384,7 @@ export default function KnockoutPage() {
           {/* Stage Title */}
           <div className="flex items-center gap-3">
             <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
-            <span className="text-xs font-black text-sya-orange uppercase tracking-widest">
+            <span className="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
               {STAGE_LABELS[activeStage]}
             </span>
             <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
