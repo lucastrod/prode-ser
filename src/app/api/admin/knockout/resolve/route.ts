@@ -101,7 +101,7 @@ export async function POST() {
 
     // Si se resolvió algún cruce, los datos de matches cambiaron
     if (resolved.length > 0) {
-      revalidateTag('matches', 'max');
+      revalidateTag('matches');
     }
 
     return NextResponse.json({

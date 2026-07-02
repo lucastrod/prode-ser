@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Invalidar cache de predicciones de este usuario
-    revalidateTag(`predictions-${userId}`, 'max');
+    revalidateTag(`predictions-${userId}`);
 
     return NextResponse.json({ success: true, prediction });
   } catch (err: any) {
