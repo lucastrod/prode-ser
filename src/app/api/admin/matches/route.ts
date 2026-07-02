@@ -8,14 +8,14 @@ export async function POST(request: NextRequest) {
     if (body.action === 'import') {
       const result = await dbClient.importFixtures();
       // Invalida el caché de matches al importar nuevo fixture
-      revalidateTag('matches');
+      revalidateTag('matches', 'max');
       return NextResponse.json(result);
     } else {
       if (!body.homeTeam || !body.awayTeam || !body.matchDate || !body.groupName) {
         return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
       }
       const match = await dbClient.saveMatch(body);
-      revalidateTag('matches');
+      revalidateTag('matches', 'max');
       return NextResponse.json({ success: true, match });
     }
   } catch (err: any) {
@@ -32,11 +32,11 @@ export async function PUT(request: NextRequest) {
     const match = await dbClient.updateMatch(matchData);
 
     // Siempre invalida matches (score, status cambiaron)
-    revalidateTag('matches');
+    revalidateTag('matches', 'max');
 
     // Si el partido quedó FINISHED, los standings y predicciones se recalcularon
     if (matchData.status === 'FINISHED') {
-      revalidateTag('standings');
+      revalidateTag('standings', 'max');
     }
 
     return NextResponse.json({ success: true, match });

@@ -2,14 +2,14 @@ import pg from 'pg';
 const { Pool } = pg;
 
 // ─── Configuración ───────────────────────────────────────────────────────────
-const DB_SER = process.env.DB_SER || 'postgresql://neondb_owner:npg_4sfcXahAGo7U@ep-autumn-lake-atf08sgk.c-9.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require';
+const DB_SER = process.env.DB_SER || 'postgresql://neondb_owner:npg_fekzVT7u0YxU@ep-gentle-lake-ats6fusm.c-9.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require';
 const DB_YA  = process.env.DB_YA  || 'postgresql://neondb_owner:npg_jSTUJL2wQAo1@ep-cold-art-apl2ycee.c-7.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require';
 
 const USER_NAME    = 'lucas castro';  // búsqueda case-insensitive
-const HOME_TEAM    = 'Inglaterra';    // o como esté en la DB
-const AWAY_TEAM    = 'RD Congo';      // o como esté en la DB
-const NEW_HOME     = 2;
-const NEW_AWAY     = 1;
+const HOME_TEAM    = 'España';
+const AWAY_TEAM    = 'Austria';
+const NEW_HOME     = 3;
+const NEW_AWAY     = 0;
 
 async function fixPrediction(label, connectionString) {
   const pool = new Pool({ connectionString, ssl: true });
@@ -36,34 +36,33 @@ async function fixPrediction(label, connectionString) {
 
     const user = users[0];
 
-    // 2. Buscar el partido Inglaterra vs RD Congo (búsqueda flexible)
+    // 2. Buscar el partido España vs Austria (búsqueda flexible)
     const { rows: matches } = await pool.query(
       `SELECT id, home_team, away_team, match_date, home_score, away_score, status
        FROM matches
-       WHERE (LOWER(home_team) LIKE '%inglat%' OR LOWER(home_team) LIKE '%england%')
-         AND (LOWER(away_team) LIKE '%congo%' OR LOWER(away_team) LIKE '%rd congo%' OR LOWER(away_team) LIKE '%r. d. congo%')
+       WHERE (LOWER(home_team) LIKE '%espa%' OR LOWER(home_team) LIKE '%spain%')
+         AND (LOWER(away_team) LIKE '%aust%')
        ORDER BY match_date`
     );
 
     if (matches.length === 0) {
-      console.log(`⚠️  No se encontró el partido Inglaterra vs RD Congo`);
+      console.log(`⚠️  No se encontró el partido España vs Austria`);
       // Intentar búsqueda inversa
       const { rows: altMatches } = await pool.query(
         `SELECT id, home_team, away_team, match_date, home_score, away_score, status
          FROM matches
-         WHERE (LOWER(away_team) LIKE '%inglat%' OR LOWER(away_team) LIKE '%england%')
-           AND (LOWER(home_team) LIKE '%congo%')
+         WHERE (LOWER(away_team) LIKE '%espa%' OR LOWER(away_team) LIKE '%spain%')
+           AND (LOWER(home_team) LIKE '%aust%')
          ORDER BY match_date`
       );
       if (altMatches.length > 0) {
         console.log(`ℹ️  Encontrado con equipos invertidos:`);
         altMatches.forEach(m => console.log(`   - [${m.id}] ${m.home_team} vs ${m.away_team} | Score: ${m.home_score}-${m.away_score} | Status: ${m.status}`));
       } else {
-        // Mostrar todos los partidos para diagnóstico
         const { rows: allMatches } = await pool.query(
-          `SELECT id, home_team, away_team FROM matches WHERE LOWER(home_team) LIKE '%congo%' OR LOWER(away_team) LIKE '%congo%'`
+          `SELECT id, home_team, away_team FROM matches WHERE LOWER(home_team) LIKE '%espa%' OR LOWER(away_team) LIKE '%espa%'`
         );
-        console.log(`🔍 Partidos con "Congo":`, allMatches);
+        console.log(`🔍 Partidos con "España":`, allMatches);
       }
       await pool.end();
       return;
