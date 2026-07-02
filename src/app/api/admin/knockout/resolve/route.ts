@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Stage, MatchStatus } from '@prisma/client';
 import db from '@/lib/db';
+import { revalidateTag } from 'next/cache';
 
 export async function POST() {
   try {
@@ -96,6 +97,11 @@ export async function POST() {
       } else {
         skipped.push(`${match.homeTeam} vs ${match.awayTeam} (esperando partido de origen)`);
       }
+    }
+
+    // Si se resolvió algún cruce, los datos de matches cambiaron
+    if (resolved.length > 0) {
+      revalidateTag('matches', 'max');
     }
 
     return NextResponse.json({

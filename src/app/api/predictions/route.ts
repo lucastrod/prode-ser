@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dbClient } from '@/lib/db-client';
+import { cacheTag, revalidateTag } from 'next/cache';
+
+async function getPredictionsData(userId: string) {
+  'use cache';
+  cacheTag(`predictions-${userId}`);
+  return dbClient.getPredictions(userId);
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -10,7 +17,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const predictions = await dbClient.getPredictions(userId);
+    const predictions = await getPredictionsData(userId);
     return NextResponse.json({ predictions });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -32,9 +39,12 @@ export async function POST(request: NextRequest) {
       Number(predictedAwayScore)
     );
 
+    // Invalidar cache de predicciones de este usuario
+    revalidateTag(`predictions-${userId}`, 'max');
+
     return NextResponse.json({ success: true, prediction });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 }
-export const dynamic = 'force-dynamic';
+
