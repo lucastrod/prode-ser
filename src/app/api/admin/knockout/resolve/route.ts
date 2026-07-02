@@ -115,5 +115,3 @@ export async function POST() {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-
-export const dynamic = 'force-dynamic';
