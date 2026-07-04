@@ -60,7 +60,7 @@ function MatchCard({
   const matchDate = new Date(match.matchDate);
   const now = new Date();
   const isLocked = now >= new Date(matchDate.getTime() - 15 * 60000) || match.status === 'LIVE' || match.status === 'FINISHED';
-  const canPredict = match.stage === 'ROUND_32' && !isLocked && !isPlaceholder;
+  const canPredict = !isLocked && !isPlaceholder;
 
   const getWinner = (side: 'home' | 'away') => {
     if (!isFinished || match.homeScore === null || match.awayScore === null) return false;
@@ -167,7 +167,7 @@ function MatchCard({
           </div>
         </div>
 
-        {/* Prediction input zone — ROUND_32 only, not yet locked */}
+        {/* Prediction input zone */}
         {canPredict && onScoreChange && onSave && (
           <div className="px-4 pb-3 border-t border-gray-200 dark:border-gray-800 pt-3">
             <p className="text-[10px] text-gray-400 font-bold uppercase mb-2">Tu pronóstico</p>
@@ -221,7 +221,7 @@ function MatchCard({
         )}
 
         {/* Locked prediction display */}
-        {!canPredict && !isFinished && !isLive && !isPlaceholder && match.stage === 'ROUND_32' && (
+        {!canPredict && !isFinished && !isLive && !isPlaceholder && (
           <div className="px-4 pb-3 border-t border-gray-200 dark:border-gray-800 pt-3">
             <p className="text-[10px] text-amber-400 font-bold uppercase">🔒 Pronóstico bloqueado</p>
           </div>
@@ -390,8 +390,8 @@ export default function KnockoutPage() {
             <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
           </div>
 
-          {/* Hint for ROUND_32 */}
-          {activeStage === 'ROUND_32' && user && (
+          {/* Hint for prediction */}
+          {user && (
             <p className="text-xs text-gray-400 font-semibold text-center">
               Ingresá tu marcador predicho en cada partido y presioná <strong>Predecir</strong> para guardar.
             </p>
