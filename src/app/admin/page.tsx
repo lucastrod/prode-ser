@@ -77,7 +77,7 @@ export default function AdminPage() {
   const [syncToast, setSyncToast] = useState<{ matches: string[]; visible: boolean } | null>(null);
 
   // Filters for matches and results
-  const [filterStage, setFilterStage] = useState<string>('Round of 32');
+  const [filterStage, setFilterStage] = useState<string>('Round of 16');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
 
   // Forms
