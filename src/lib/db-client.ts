@@ -443,56 +443,6 @@ export const dbClient = {
     return data.users.find((u) => u.email.toLowerCase() === email.toLowerCase()) || null;
   },
 
-  async generatePasswordResetToken(email: string) {
-    const token = require('crypto').randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 3600000); // 1 hour from now
-
-    if (isDbConfigured()) {
-      try {
-        const user = await db.user.update({
-          where: { email },
-          data: {
-            resetPasswordToken: token,
-            resetPasswordExpires: expires,
-          },
-        });
-        return { token, user };
-      } catch (err) {
-        console.error('Prisma generatePasswordResetToken failed:', err);
-        return null;
-      }
-    }
-
-    const data = mockDb.readMockDB();
-    const idx = data.users.findIndex((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (idx >= 0) {
-      data.users[idx].resetPasswordToken = token;
-      data.users[idx].resetPasswordExpires = expires.toISOString();
-      mockDb.writeMockDB(data);
-      return { token, user: data.users[idx] };
-    }
-    return null;
-  },
-
-  async getUserByResetToken(token: string) {
-    if (isDbConfigured()) {
-      try {
-        return await db.user.findFirst({
-          where: {
-            resetPasswordToken: token,
-            resetPasswordExpires: { gt: new Date() },
-          },
-        });
-      } catch (err) {
-        console.error('Prisma getUserByResetToken failed:', err);
-      }
-    }
-    const data = mockDb.readMockDB();
-    return data.users.find(
-      (u) => u.resetPasswordToken === token && new Date(u.resetPasswordExpires) > new Date()
-    ) || null;
-  },
-
   async resetUserPassword(id: string, newPasswordHash: string) {
     if (isDbConfigured()) {
       try {
@@ -500,8 +450,6 @@ export const dbClient = {
           where: { id },
           data: {
             passwordHash: newPasswordHash,
-            resetPasswordToken: null,
-            resetPasswordExpires: null,
           },
         });
       } catch (err) {
@@ -514,8 +462,6 @@ export const dbClient = {
     const idx = data.users.findIndex((u) => u.id === id);
     if (idx >= 0) {
       data.users[idx].passwordHash = newPasswordHash;
-      data.users[idx].resetPasswordToken = null;
-      data.users[idx].resetPasswordExpires = null;
       mockDb.writeMockDB(data);
       return data.users[idx];
     }

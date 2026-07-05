@@ -10,6 +10,9 @@ interface MockUser {
   role: 'USER' | 'ADMIN';
   active: boolean;
   createdAt: string;
+  passwordHash?: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpires?: string | null;
 }
 
 interface MockMatch {
