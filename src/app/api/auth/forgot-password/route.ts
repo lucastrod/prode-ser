@@ -1,27 +1,36 @@
 import { NextResponse } from 'next/server';
 import { dbClient } from '@/lib/db-client';
-import { sendPasswordResetEmail } from '@/lib/email';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
   try {
-    const { email } = await request.json();
+    const { email, newPassword } = await request.json();
 
-    if (!email) {
-      return NextResponse.json({ error: 'Email requerido' }, { status: 400 });
+    if (!email || !newPassword) {
+      return NextResponse.json({ error: 'Faltan datos requeridos' }, { status: 400 });
     }
 
-    const result = await dbClient.generatePasswordResetToken(email);
-
-    // Si el usuario existe, se generó el token y procedemos a enviar el email
-    if (result) {
-      await sendPasswordResetEmail(email, result.user.name, result.token);
+    if (newPassword.length < 6) {
+      return NextResponse.json({ error: 'La contraseña debe tener al menos 6 caracteres' }, { status: 400 });
     }
 
-    // Siempre devolvemos éxito para evitar enumeración de emails
-    return NextResponse.json({ success: true, message: 'Si el correo está registrado, recibirás un enlace.' });
+    const user = await dbClient.getUserByEmail(email);
+
+    if (!user) {
+      // Devolver error genérico o específico (al ser un grupo de amigos, puede ser específico)
+      return NextResponse.json({ error: 'No se encontró ningún usuario con ese correo.' }, { status: 400 });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    // Re-utilizamos resetUserPassword, le pasamos el ID.
+    // Como simplificamos el flujo, directamente lo actualiza.
+    await dbClient.resetUserPassword(user.id, passwordHash);
+
+    return NextResponse.json({ success: true, message: 'Contraseña actualizada exitosamente.' });
 
   } catch (error: any) {
-    console.error('Error en forgot-password:', error);
+    console.error('Error en forgot-password (direct):', error);
     return NextResponse.json({ error: 'Ocurrió un error inesperado.' }, { status: 500 });
   }
 }

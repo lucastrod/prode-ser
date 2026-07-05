@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Sparkles, Mail, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Sparkles, Mail, Lock, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
-export default function ForgotPasswordPage() {
+export default function DirectResetPasswordPage() {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -14,8 +17,18 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setError('');
     
-    if (!email) {
-      setError('Por favor, ingresá tu correo electrónico.');
+    if (!email || !password || !confirmPassword) {
+      setError('Por favor, completá todos los campos.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres.');
       return;
     }
 
@@ -25,13 +38,13 @@ export default function ForgotPasswordPage() {
       const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, newPassword: password }),
       });
       
       const data = await res.json();
       
       if (!res.ok) {
-        setError(data.error || 'Ocurrió un error al intentar enviar el correo.');
+        setError(data.error || 'Ocurrió un error al intentar cambiar la contraseña.');
       } else {
         setSuccess(true);
       }
@@ -53,10 +66,10 @@ export default function ForgotPasswordPage() {
         <div className="flex flex-col items-center justify-center mb-8">
           <img src="/logos/LOGO SER.png" alt="Logo SER" className="h-24 w-auto object-contain mb-4" />
           <h2 className="text-3xl font-extrabold font-serif bg-gradient-to-r from-[#1B199A] to-[#4b3be2] bg-clip-text text-transparent">
-            Recuperar Contraseña
+            Cambiar Contraseña
           </h2>
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 font-semibold text-center">
-            Ingresá tu correo y te enviaremos las instrucciones.
+            Ingresá tu correo y tu nueva contraseña directamente.
           </p>
         </div>
 
@@ -71,15 +84,14 @@ export default function ForgotPasswordPage() {
           <div className="space-y-6 animate-fade-in">
             <div className="bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400 p-4 rounded-2xl flex flex-col items-center gap-2.5 text-center">
               <CheckCircle className="w-12 h-12 mb-2" />
-              <h3 className="font-bold text-lg">Correo enviado</h3>
+              <h3 className="font-bold text-lg">¡Contraseña actualizada!</h3>
               <p className="text-sm">
-                Si existe una cuenta asociada a ese correo, te enviaremos un enlace para cambiar tu contraseña. 
-                Revisá tu bandeja de entrada (y la de spam).
+                Ya podés usar tu nueva contraseña para ingresar.
               </p>
             </div>
             <Link 
               href="/login" 
-              className="w-full py-3.5 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 transition-all flex items-center justify-center gap-2"
+              className="w-full py-3.5 bg-[#1B199A] text-white font-bold rounded-full hover:bg-[#342ede] transition-all flex items-center justify-center gap-2"
             >
               Volver al Login
             </Link>
@@ -102,6 +114,38 @@ export default function ForgotPasswordPage() {
                   />
                 </div>
               </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">Nueva Contraseña</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                    <Lock className="w-5 h-5" />
+                  </span>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="block w-full pl-11 pr-4 py-3 bg-gray-500/5 border border-gray-200 dark:border-gray-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1B199A]/50 focus:border-[#1B199A] font-medium text-sm transition-all"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">Repetir Contraseña</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                    <Lock className="w-5 h-5" />
+                  </span>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="block w-full pl-11 pr-4 py-3 bg-gray-500/5 border border-gray-200 dark:border-gray-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1B199A]/50 focus:border-[#1B199A] font-medium text-sm transition-all"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
             </div>
 
             <div>
@@ -113,7 +157,7 @@ export default function ForgotPasswordPage() {
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
-                  'Enviar Enlace de Recuperación'
+                  'Guardar Contraseña'
                 )}
               </button>
             </div>
