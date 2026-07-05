@@ -105,7 +105,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   // Redirect to login if not authenticated and not loading (exclude public pages)
   useEffect(() => {
-    if (!loading && !user && pathname !== '/login' && pathname !== '/register' && pathname !== '/verify') {
+    if (!loading && !user && pathname !== '/login' && pathname !== '/register' && pathname !== '/verify' && pathname !== '/forgot-password') {
       router.push('/login');
     }
   }, [user, loading, pathname, router]);
@@ -121,8 +121,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     );
   }
 
-  // Render children directly on login, register and verify pages
-  if (pathname === '/login' || pathname === '/register' || pathname === '/verify') {
+  // Render children directly on login, register, verify and forgot-password pages
+  if (pathname === '/login' || pathname === '/register' || pathname === '/verify' || pathname === '/forgot-password') {
     return <>{children}</>;
   }
 
