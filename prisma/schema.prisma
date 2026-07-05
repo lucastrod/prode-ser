@@ -36,8 +36,10 @@ model User {
   role              Role         @default(USER)
   active            Boolean      @default(true)
   emailVerified     Boolean      @default(false) @map("email_verified")
-  verificationToken String?      @map("verification_token")
-  avatarUrl         String?      @map("avatar_url")
+  verificationToken    String?      @map("verification_token")
+  resetPasswordToken   String?      @map("reset_password_token")
+  resetPasswordExpires DateTime?    @map("reset_password_expires")
+  avatarUrl            String?      @map("avatar_url")
   createdAt         DateTime     @default(now()) @map("created_at")
   predictions       Prediction[]
   standing          Standing?

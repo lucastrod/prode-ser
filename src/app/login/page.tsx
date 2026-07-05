@@ -135,6 +135,11 @@ function LoginForm() {
                   placeholder="••••••••"
                 />
               </div>
+              <div className="flex justify-end mt-1">
+                <Link href="/forgot-password" className="text-xs font-semibold text-[#1B199A] hover:underline">
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </div>
             </div>
           </div>
 
