@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { calculatePoints, recalculateStandings } from '@/lib/points-engine';
+import { revalidateTag } from 'next/cache';
 
 export async function GET(request: Request) {
   try {
@@ -49,6 +50,10 @@ export async function GET(request: Request) {
 
     // 3. Recalcular STANDINGS desde cero
     await recalculateStandings();
+    
+    // 4. Invalidar cachés del lado del servidor
+    revalidateTag('standings', 'max');
+    revalidateTag('matches', 'max');
     
     return NextResponse.json({ 
       success: true, 

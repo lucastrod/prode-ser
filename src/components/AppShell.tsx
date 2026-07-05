@@ -71,7 +71,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     
     const fetchStats = async () => {
       try {
-        const res = await fetch('/api/standings');
+        const timestamp = new Date().getTime();
+        const res = await fetch(`/api/standings?t=${timestamp}`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           const list: StandingRow[] = data.standings || [];
