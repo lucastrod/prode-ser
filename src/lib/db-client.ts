@@ -718,7 +718,7 @@ export const dbClient = {
           },
         });
 
-        if (matchData.status === 'FINISHED') {
+        if (['FINISHED', 'LIVE'].includes(matchData.status)) {
           const { recalculateMatchPoints } = await import('./points-engine');
           await recalculateMatchPoints(matchData.id);
         }

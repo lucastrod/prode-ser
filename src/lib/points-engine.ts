@@ -37,7 +37,7 @@ export async function recalculateMatchPoints(matchId: number) {
     where: { id: matchId },
   });
 
-  if (!match || match.status !== 'FINISHED' || match.homeScore === null || match.awayScore === null) {
+  if (!match || !['FINISHED', 'LIVE'].includes(match.status) || match.homeScore === null || match.awayScore === null) {
     return;
   }
 

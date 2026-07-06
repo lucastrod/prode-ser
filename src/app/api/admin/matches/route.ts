@@ -34,8 +34,8 @@ export async function PUT(request: NextRequest) {
     // Siempre invalida matches (score, status cambiaron)
     revalidateTag('matches', 'max');
 
-    // Si el partido quedó FINISHED, los standings y predicciones se recalcularon
-    if (matchData.status === 'FINISHED') {
+    // Si el partido está LIVE o FINISHED, los standings y predicciones se recalcularon
+    if (['FINISHED', 'LIVE'].includes(matchData.status)) {
       revalidateTag('standings', 'max');
     }
 
