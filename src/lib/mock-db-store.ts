@@ -151,13 +151,6 @@ export function calculatePoints(
   const actualWinner = actualHome > actualAway ? 'home' : actualHome < actualAway ? 'away' : 'draw';
 
   if (predWinner === actualWinner) {
-    if (predWinner !== 'draw') {
-      const predDiff = predHome - predAway;
-      const actualDiff = actualHome - actualAway;
-      if (predDiff === actualDiff) {
-        return 4;
-      }
-    }
     return 3;
   }
 
@@ -178,7 +171,7 @@ export function recalculateMockStandings(db: MockDB) {
       totalPoints += pred.points;
       if (pred.points === 6) {
         exactScores++;
-      } else if (pred.points === 4 || pred.points === 3) {
+      } else if (pred.points === 3) {
         correctOutcomes++;
       }
     }
