@@ -1,16 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dbClient } from '@/lib/db-client';
-import { cacheTag } from 'next/cache';
-
-async function getStandingsData() {
-  'use cache';
-  cacheTag('standings');
-  return dbClient.getStandings();
-}
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    const standings = await getStandingsData();
+    const standings = await dbClient.getStandings();
     return NextResponse.json({ standings });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
