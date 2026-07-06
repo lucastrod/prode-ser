@@ -52,8 +52,8 @@ export async function GET(request: Request) {
     await recalculateStandings();
     
     // 4. Invalidar cachés del lado del servidor
-    revalidateTag('standings');
-    revalidateTag('matches');
+    revalidateTag('standings', 'max');
+    revalidateTag('matches', 'max');
     
     return NextResponse.json({ 
       success: true, 
